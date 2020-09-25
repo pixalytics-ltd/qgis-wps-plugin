@@ -111,6 +111,58 @@
     </rect>
    </property>
   </widget>
+  <widget class="QLabel" name="labelProcessDescription">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>100</y>
+     <width>541</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonLoadProcess">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>60</y>
+     <width>141</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Load Process</string>
+   </property>
+  </widget>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>160</y>
+     <width>611</width>
+     <height>371</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tabInputs">
+    <attribute name="title">
+     <string>Inputs</string>
+    </attribute>
+   </widget>
+   <widget class="QWidget" name="tabOutpts">
+    <attribute name="title">
+     <string>Outputs</string>
+    </attribute>
+   </widget>
+  </widget>
  </widget>
  <resources/>
  <connections/>

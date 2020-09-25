@@ -35,6 +35,7 @@ from qgis.core import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
+from qgis.gui import *
 
 owslib_exists = True
 try:
@@ -58,6 +59,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.pushButtonAbout.clicked.connect(self.showAbout)
         if owslib_exists and self.check_owslib_fix():
             self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
+            self.pushButtonLoadProcess.clicked.connect(self.load_process)
         else:
             QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "You have to install OWSlib with fix.", None))
 
@@ -70,14 +72,42 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def load_processes(self):
         try:
-            wps = WebProcessingService(self.lineEditWpsUrl.text())
-            wps.getcapabilities()
-            processes = [x.identifier for x in wps.processes]
+            self.wps = WebProcessingService(self.lineEditWpsUrl.text())
+            self.wps.getcapabilities()
+            processes = [x.identifier for x in self.wps.processes]
             self.comboBoxProcesses.clear()
             for proc in processes:
                 self.comboBoxProcesses.addItem(proc)
         except:
             QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error reading processes", None))
+
+    def get_all_layers_input(self):
+        return QgsMapLayerComboBox()
+
+    def get_input(self, type, default_value):
+        # TODO check types
+        if type == 'ComplexData':
+            return self.get_all_layers_input()
+        else:
+            le = QLineEdit()
+            le.setText(str(default_value))
+            return le
+
+    def load_process(self):
+        processid = self.comboBoxProcesses.currentText()
+        if processid != "":
+            process = self.wps.describeprocess(processid)
+            if process.abstract is not None:
+                # TODO reload of components does not work
+                self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
+                self.labelProcessDescription.setText(process.abstract)
+                for x in process.dataInputs:
+                    # TODO put into some list with identifiers
+                    # x.identifier
+                    le = self.get_input(x.dataType, x.defaultValue)
+                    self.verticalLayoutInputs.addWidget(le)
+                self.tabInputs.setLayout(self.verticalLayoutInputs)
+
 
     def showAbout(self):
         try:
