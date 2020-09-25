@@ -60,6 +60,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if owslib_exists and self.check_owslib_fix():
             self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
             self.pushButtonLoadProcess.clicked.connect(self.load_process)
+            self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
         else:
             QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "You have to install OWSlib with fix.", None))
 
@@ -98,8 +99,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if processid != "":
             process = self.wps.describeprocess(processid)
             if process.abstract is not None:
-                # TODO reload of components does not work
-                self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
+                for i in reversed(range(self.verticalLayoutInputs.count())):
+                    self.verticalLayoutInputs.itemAt(i).widget().setParent(None)
                 self.labelProcessDescription.setText(process.abstract)
                 for x in process.dataInputs:
                     # TODO put into some list with identifiers
