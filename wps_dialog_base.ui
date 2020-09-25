@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WpsDialogBase</class>
+ <widget class="QDialog" name="WpsDialogBase">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>824</width>
+    <height>550</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WPS Plugin</string>
+  </property>
+  <widget class="QPushButton" name="pushButtonAbout">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>460</y>
+     <width>131</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/cropped-opengeolabs-logo-small.png</normaloff>icons/cropped-opengeolabs-logo-small.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>80</width>
+     <height>80</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelRuianError">
+   <property name="geometry">
+    <rect>
+     <x>560</x>
+     <y>360</y>
+     <width>171</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEditWpsUrl">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>20</y>
+     <width>541</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>https://rain1.fsv.cvut.cz/services/wps</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelWpsUrl">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>54</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>WPS url</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonLoadProcesses">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>20</y>
+     <width>141</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Load Processes</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelProcesses">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <width>54</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Processes</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBoxProcesses">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>60</y>
+     <width>541</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
