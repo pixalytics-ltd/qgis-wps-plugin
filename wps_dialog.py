@@ -73,6 +73,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             wps = WebProcessingService(self.lineEditWpsUrl.text())
             wps.getcapabilities()
             processes = [x.identifier for x in wps.processes]
+            self.comboBoxProcesses.clear()
             for proc in processes:
                 self.comboBoxProcesses.addItem(proc)
         except:
