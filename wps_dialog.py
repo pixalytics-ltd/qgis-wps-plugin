@@ -23,8 +23,6 @@
 """
 
 import os
-import configparser
-import sys
 import webbrowser
 
 from qgis.PyQt import uic
@@ -37,9 +35,12 @@ from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
 from qgis.gui import *
 
+from .connect import *
+
 owslib_exists = True
 try:
     from owslib.wps import WebProcessingService
+    from owslib.wps import ComplexDataInput
     from owslib.util import getTypedValue
 except:
     owslib_exists = False
@@ -61,6 +62,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
             self.pushButtonLoadProcess.clicked.connect(self.load_process)
             self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
+            self.pushButtonExecute.clicked.connect(self.execute_process)
+            self.input_items = {}
         else:
             QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "You have to install OWSlib with fix.", None))
 
@@ -72,43 +75,72 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             return False
 
     def load_processes(self):
-        try:
-            self.wps = WebProcessingService(self.lineEditWpsUrl.text())
-            self.wps.getcapabilities()
-            processes = [x.identifier for x in self.wps.processes]
+        self.textEditLog.append(QApplication.translate("WPS", "Loading processes ...", None))
+        self.loadProcesses = GetProcesses()
+        self.loadProcesses.setUrl(self.lineEditWpsUrl.text())
+        self.loadProcesses.statusChanged.connect(self.on_load_processes_response)
+        self.loadProcesses.start()
+
+    def on_load_processes_response(self, response):
+        if response.status == 200:
             self.comboBoxProcesses.clear()
-            for proc in processes:
+            for proc in response.data:
                 self.comboBoxProcesses.addItem(proc)
-        except:
-            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error reading processes", None))
+            self.pushButtonLoadProcess.setEnabled(True)
+            self.textEditLog.append(QApplication.translate("WPS", "Processes loaded", None))
+        else:
+            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error loading processes", None))
+            self.textEditLog.append(QApplication.translate("WPS", "Error loading processes", None))
 
     def get_all_layers_input(self):
-        return QgsMapLayerComboBox()
+        return QgsMapLayerComboBox(self.tabInputs)
 
-    def get_input(self, type, default_value):
+    def get_input(self, identifier, data_type, default_value):
         # TODO check types
-        if type == 'ComplexData':
-            return self.get_all_layers_input()
+        input_item = None
+        if data_type == 'ComplexData':
+            input_item = self.get_all_layers_input()
         else:
-            le = QLineEdit()
-            le.setText(str(default_value))
-            return le
+            input_item = QLineEdit(self.tabInputs)
+            input_item.setText(str(default_value))
+        hbox_layout = QHBoxLayout(self.tabInputs)
+        label = QLabel(self.tabInputs)
+        label.setText(str(identifier))
+        hbox_layout.addWidget(label)
+        hbox_layout.addWidget(input_item)
+        return hbox_layout
 
     def load_process(self):
-        processid = self.comboBoxProcesses.currentText()
-        if processid != "":
-            process = self.wps.describeprocess(processid)
-            if process.abstract is not None:
-                for i in reversed(range(self.verticalLayoutInputs.count())):
-                    self.verticalLayoutInputs.itemAt(i).widget().setParent(None)
-                self.labelProcessDescription.setText(process.abstract)
-                for x in process.dataInputs:
-                    # TODO put into some list with identifiers
-                    # x.identifier
-                    le = self.get_input(x.dataType, x.defaultValue)
-                    self.verticalLayoutInputs.addWidget(le)
-                self.tabInputs.setLayout(self.verticalLayoutInputs)
+        self.textEditLog.append(QApplication.translate("WPS", "Loading process ...", None))
+        self.loadProcess = GetProcess()
+        self.loadProcess.setUrl(self.lineEditWpsUrl.text())
+        self.loadProcess.setIdentifier(self.comboBoxProcesses.currentText())
+        self.loadProcess.statusChanged.connect(self.on_load_process_response)
+        self.loadProcess.start()
 
+    def on_load_process_response(self, response):
+        if response.status == 200:
+            if response.data.abstract is not None:
+                for i in reversed(range(self.verticalLayoutInputs.count())):
+                    for j in reversed(range(self.verticalLayoutInputs.itemAt(i).count())):
+                        self.verticalLayoutInputs.itemAt(i).itemAt(j).widget().setParent(None)
+                self.labelProcessDescription.setText(response.data.abstract)
+                self.input_items = {}
+                self.pushButtonExecute.setEnabled(True)
+                for x in response.data.dataInputs:
+                    input_item = self.get_input(x.identifier, x.dataType, x.defaultValue)
+                    self.verticalLayoutInputs.addLayout(input_item)
+                self.tabInputs.setLayout(self.verticalLayoutInputs)
+            self.textEditLog.append(QApplication.translate("WPS", "Process loaded", None))
+        else:
+            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error loading process", None))
+            self.textEditLog.append(QApplication.translate("WPS", "Error loading process", None))
+
+    def execute_process(self):
+        cdi = ComplexDataInput('http://rain.fsv.cvut.cz/geodata/test.gml')
+        myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
+        execution = self.wps.execute('d-rain-shp', myinputs)
+        execution.getOutput('/tmp/out.zip')
 
     def showAbout(self):
         try:

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>824</width>
-    <height>550</height>
+    <width>811</width>
+    <height>639</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -128,6 +128,9 @@
    </property>
   </widget>
   <widget class="QPushButton" name="pushButtonLoadProcess">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>650</x>
@@ -162,6 +165,32 @@
      <string>Outputs</string>
     </attribute>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="pushButtonExecute">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>100</y>
+     <width>141</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Execute Process</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEditLog">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>549</y>
+     <width>771</width>
+     <height>71</height>
+    </rect>
+   </property>
   </widget>
  </widget>
  <resources/>
