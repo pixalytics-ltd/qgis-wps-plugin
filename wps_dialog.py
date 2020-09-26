@@ -108,6 +108,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         label.setText(str(identifier))
         hbox_layout.addWidget(label)
         hbox_layout.addWidget(input_item)
+        # TODO check if there is not a better way
+        self.input_items[str(identifier)] = input_item
         return hbox_layout
 
     def load_process(self):
@@ -137,10 +139,42 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.textEditLog.append(QApplication.translate("WPS", "Error loading process", None))
 
     def execute_process(self):
-        cdi = ComplexDataInput('http://rain.fsv.cvut.cz/geodata/test.gml')
-        myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
-        execution = self.wps.execute('d-rain-shp', myinputs)
-        execution.getOutput('/tmp/out.zip')
+        myinputs = []
+        for x in self.input_items:
+            print(x)
+            print(self.input_items[x])
+            if isinstance(self.input_items[x], QgsMapLayerComboBox):
+                # TODO check input type and export into it (GML, GeoPackage, etc.)
+                cdi = ComplexDataInput('http://rain.fsv.cvut.cz/geodata/test.gml')
+                myinputs.append((x, cdi))
+            else:
+                # TODO check also other types than just QLineEdit
+                if self.input_items[x].text() != 'None':
+                    myinputs.append((x, self.input_items[x].text()))
+        self.textEditLog.append(QApplication.translate("WPS", "Executing process ...", None))
+        self.executeProcess = ExecuteProcess()
+        self.executeProcess.setUrl(self.lineEditWpsUrl.text())
+        self.executeProcess.setIdentifier(self.comboBoxProcesses.currentText())
+        self.executeProcess.setInputs(myinputs)
+        self.executeProcess.statusChanged.connect(self.on_execute_process_response)
+        self.executeProcess.start()
+        # myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
+        # execution = self.wps.execute('d-rain-shp', myinputs)
+        # execution.getOutput('/tmp/out.zip')
+
+    def on_execute_process_response(self, response):
+        if response.status == 200:
+            self.textEditLog.append(QApplication.translate("WPS", "Processes executed", None))
+            # TODO check output type
+            vector = QgsVectorLayer('/vsizip/' + response.filepath, "Process output", "ogr")
+            if vector.isValid():
+                QgsProject.instance().addMapLayer(vector)
+            else:
+                QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Can not load output into map", None))
+                self.textEditLog.append(QApplication.translate("WPS", "Can not load output into map", None))
+        else:
+            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error executing process", None))
+            self.textEditLog.append(QApplication.translate("WPS", "Error executing process", None))
 
     def showAbout(self):
         try:
