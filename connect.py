@@ -98,6 +98,9 @@ class ExecuteProcess(QThread):
                 execution.getOutput(file_path)
                 responseToReturn.status = 200
                 responseToReturn.filepath = file_path
+                # myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
+                # execution = self.wps.execute('d-rain-shp', myinputs)
+                # execution.getOutput('/tmp/out.zip')
             except:
                 responseToReturn.status = 500
         else:

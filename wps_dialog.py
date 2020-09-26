@@ -158,17 +158,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess.setInputs(myinputs)
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
-        # myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
-        # execution = self.wps.execute('d-rain-shp', myinputs)
-        # execution.getOutput('/tmp/out.zip')
 
     def on_execute_process_response(self, response):
         if response.status == 200:
-            self.textEditLog.append(QApplication.translate("WPS", "Processes executed", None))
+            self.textEditLog.append(QApplication.translate("WPS", "Process executed", None))
             # TODO check output type
             vector = QgsVectorLayer('/vsizip/' + response.filepath, "Process output", "ogr")
             if vector.isValid():
                 QgsProject.instance().addMapLayer(vector)
+                self.textEditLog.append(QApplication.translate("WPS", "Data loaded into the map", None))
             else:
                 QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Can not load output into map", None))
                 self.textEditLog.append(QApplication.translate("WPS", "Can not load output into map", None))
