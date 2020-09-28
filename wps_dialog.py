@@ -170,9 +170,16 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             else:
                 QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Can not load output into map", None))
                 self.textEditLog.append(QApplication.translate("WPS", "Can not load output into map", None))
+                self.textEditLog.append(QApplication.translate("WPS", "Showing content of the file", None))
+                self.appendFileContentIntoLog(response.filepath)
         else:
             QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error executing process", None))
             self.textEditLog.append(QApplication.translate("WPS", "Error executing process", None))
+            self.textEditLog.append(response.data)
+
+    def appendFileContentIntoLog(self, file):
+        with (open(file, "r")) as f:
+            self.textEditLog.append(str(f.read()))
 
     def showAbout(self):
         try:

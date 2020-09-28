@@ -70,7 +70,7 @@ class GetProcess(QThread):
 class ExecuteProcess(QThread):
     statusChanged = pyqtSignal(object)
     url = None
-    timeout = 5
+    timeout = 60
     identifier = ''
     inputs = []
 
@@ -101,8 +101,9 @@ class ExecuteProcess(QThread):
                 # myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
                 # execution = self.wps.execute('d-rain-shp', myinputs)
                 # execution.getOutput('/tmp/out.zip')
-            except:
+            except Exception as e:
                 responseToReturn.status = 500
+                responseToReturn.data = str(e)
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
