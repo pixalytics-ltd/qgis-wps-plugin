@@ -139,6 +139,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.textEditLog.append(QApplication.translate("WPS", "Error loading process", None))
 
     def execute_process(self):
+        # Async call: https://ouranosinc.github.io/pavics-sdi/tutorials/wps_with_python.html
         myinputs = []
         for x in self.input_items:
             print(x)
@@ -146,6 +147,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if isinstance(self.input_items[x], QgsMapLayerComboBox):
                 # TODO check input type and export into it (GML, GeoPackage, etc.)
                 cdi = ComplexDataInput('http://rain.fsv.cvut.cz/geodata/test.gml')
+                #cdi = ComplexDataInput('file:///home/jencek/test.gml')
                 myinputs.append((x, cdi))
             else:
                 # TODO check also other types than just QLineEdit
