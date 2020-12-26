@@ -50,7 +50,7 @@ class Wps:
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'wps_{}.qm'.format(locale))
+            'wps_plugin_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
