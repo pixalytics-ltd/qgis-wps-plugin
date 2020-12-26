@@ -112,15 +112,21 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.input_items[str(identifier)] = input_item
         return hbox_layout
 
+    def get_process_identifier(self):
+        return self.comboBoxProcesses.currentText()
+
     def load_process(self):
-        self.textEditLog.append(QApplication.translate("WPS", "Loading process ...", None))
+        process_identifier = self.get_process_identifier()
+        self.textEditLog.append(QApplication.translate(
+            "WPS", "Loading process {}...".format(process_identifier), None))
         self.loadProcess = GetProcess()
         self.loadProcess.setUrl(self.lineEditWpsUrl.text())
-        self.loadProcess.setIdentifier(self.comboBoxProcesses.currentText())
+        self.loadProcess.setIdentifier(process_identifier)
         self.loadProcess.statusChanged.connect(self.on_load_process_response)
         self.loadProcess.start()
 
     def on_load_process_response(self, response):
+        process_identifier = self.get_process_identifier()
         if response.status == 200:
             if response.data.abstract is not None:
                 for i in reversed(range(self.verticalLayoutInputs.count())):
@@ -133,14 +139,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     input_item = self.get_input(x.identifier, x.dataType, x.defaultValue)
                     self.verticalLayoutInputs.addLayout(input_item)
                 self.tabInputs.setLayout(self.verticalLayoutInputs)
-            self.textEditLog.append(QApplication.translate("WPS", "Process loaded", None))
+            self.textEditLog.append(QApplication.translate("WPS", "Process {} loaded".format(process_identifier), None))
         else:
-            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error loading process", None))
-            self.textEditLog.append(QApplication.translate("WPS", "Error loading process", None))
+            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None),
+                                    QApplication.translate("WPS", "Error loading process {}".format(process_identifier), None))
+            self.textEditLog.append(QApplication.translate("WPS", "Error loading process {}".format(process_identifier), None))
 
     def execute_process(self):
         # Async call: https://ouranosinc.github.io/pavics-sdi/tutorials/wps_with_python.html
-        process_identifier = self.comboBoxProcesses.currentText()
+        process_identifier = self.get_process_identifier()
         myinputs = []
         for param, widget in self.input_items.items():
             if isinstance(widget, QgsMapLayerComboBox):
@@ -168,7 +175,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 # TODO check also other types than just QLineEdit
                 if widget.text() != 'None':
                     myinputs.append((param, widget.text()))
-        self.textEditLog.append(QApplication.translate("WPS", "Executing process ...", None))
+        self.textEditLog.append(QApplication.translate("WPS", "Executing {} process ...".format(process_identifier), None))
         self.executeProcess = ExecuteProcess()
         self.executeProcess.setUrl(self.lineEditWpsUrl.text())
         self.executeProcess.setIdentifier(process_identifier)
@@ -177,21 +184,23 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess.start()
 
     def on_execute_process_response(self, response):
+        process_identifier = self.get_process_identifier()
         if response.status == 200:
-            self.textEditLog.append(QApplication.translate("WPS", "Process executed", None))
+            self.textEditLog.append(QApplication.translate("WPS", "Process {} executed".format(process_identifier), None))
             # TODO check output type
-            vector = QgsVectorLayer('/vsizip/' + response.filepath, "Process output", "ogr")
+            vector = QgsVectorLayer('/vsizip/' + response.filepath, "process {} output".format(process_identifier), "ogr")
             if vector.isValid():
                 QgsProject.instance().addMapLayer(vector)
-                self.textEditLog.append(QApplication.translate("WPS", "Data loaded into the map", None))
+                self.textEditLog.append(QApplication.translate("WPS", "Output data loaded into the map", None))
             else:
-                QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Can not load output into map", None))
-                self.textEditLog.append(QApplication.translate("WPS", "Can not load output into map", None))
+                QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Can not load output data into map", None))
+                self.textEditLog.append(QApplication.translate("WPS", "Can not load output data into map", None))
                 self.textEditLog.append(QApplication.translate("WPS", "Showing content of the file", None))
                 self.appendFileContentIntoLog(response.filepath)
         else:
-            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None), QApplication.translate("WPS", "Error executing process", None))
-            self.textEditLog.append(QApplication.translate("WPS", "Error executing process", None))
+            QMessageBox.information(None, QApplication.translate("WPS", "ERROR:", None),
+                                    QApplication.translate("WPS", "Error executing process {}".format(process_identifier), None))
+            self.textEditLog.append(QApplication.translate("WPS", "Error executing process {}".format(process_identifier), None))
             self.textEditLog.append(response.data)
 
     def appendFileContentIntoLog(self, file):
