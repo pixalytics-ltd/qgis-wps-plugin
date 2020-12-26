@@ -146,8 +146,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             print(self.input_items[x])
             if isinstance(self.input_items[x], QgsMapLayerComboBox):
                 # TODO check input type and export into it (GML, GeoPackage, etc.)
-                cdi = ComplexDataInput('http://rain.fsv.cvut.cz/geodata/test.gml')
-                #cdi = ComplexDataInput('file:///home/jencek/test.gml')
+                with open(os.path.join(os.path.dirname(__file__), 'tests', 'rain_sample_data.gml')) as fd:
+                    cdi = ComplexDataInput(fd.read())
                 myinputs.append((x, cdi))
             else:
                 # TODO check also other types than just QLineEdit
