@@ -140,23 +140,31 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def execute_process(self):
         # Async call: https://ouranosinc.github.io/pavics-sdi/tutorials/wps_with_python.html
+        process_identifier = self.comboBoxProcesses.currentText()
         myinputs = []
-        for x in self.input_items:
-            print(x)
-            print(self.input_items[x])
-            if isinstance(self.input_items[x], QgsMapLayerComboBox):
+        for param, widget in self.input_items.items():
+            if isinstance(widget, QgsMapLayerComboBox):
                 # TODO check input type and export into it (GML, GeoPackage, etc.)
-                with open(os.path.join(os.path.dirname(__file__), 'tests', 'rain_sample_data.gml')) as fd:
+                layer = widget.currentLayer()
+                tmp_file = QgsProcessingUtils.generateTempFilename(
+                    process_identifier + '_' + param) + '.gml'
+                QgsVectorFileWriter.writeAsVectorFormat(
+                    layer,
+                    tmp_file,
+                    fileEncoding="UTF-8",
+                    driverName="GML"
+                )
+                with open(tmp_file) as fd:
                     cdi = ComplexDataInput(fd.read())
-                myinputs.append((x, cdi))
+                myinputs.append((param, cdi))
             else:
                 # TODO check also other types than just QLineEdit
-                if self.input_items[x].text() != 'None':
-                    myinputs.append((x, self.input_items[x].text()))
+                if widget.text() != 'None':
+                    myinputs.append((param, widget.text()))
         self.textEditLog.append(QApplication.translate("WPS", "Executing process ...", None))
         self.executeProcess = ExecuteProcess()
         self.executeProcess.setUrl(self.lineEditWpsUrl.text())
-        self.executeProcess.setIdentifier(self.comboBoxProcesses.currentText())
+        self.executeProcess.setIdentifier(process_identifier)
         self.executeProcess.setInputs(myinputs)
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
