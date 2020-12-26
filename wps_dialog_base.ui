@@ -59,7 +59,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>https://rain1.fsv.cvut.cz/services/wps</string>
+    <string>http://localhost:8080/services/wps</string>
    </property>
   </widget>
   <widget class="QLabel" name="labelWpsUrl">
