@@ -146,13 +146,20 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if isinstance(widget, QgsMapLayerComboBox):
                 # TODO check input type and export into it (GML, GeoPackage, etc.)
                 layer = widget.currentLayer()
+                if layer.type() == QgsMapLayer.VectorLayer:
+                    tmp_ext = '.gml'
+                    tmp_frmt = 'GML'
+                else:
+                    iface.messageBar().pushMessage("Error", "Unsupported map layer type", level=Qgis.Critical)
+                    return
+
                 tmp_file = QgsProcessingUtils.generateTempFilename(
-                    process_identifier + '_' + param) + '.gml'
+                    process_identifier + '_' + param) + tmp_ext
                 QgsVectorFileWriter.writeAsVectorFormat(
                     layer,
                     tmp_file,
                     fileEncoding="UTF-8",
-                    driverName="GML"
+                    driverName=tmp_frmt
                 )
                 with open(tmp_file) as fd:
                     cdi = ComplexDataInput(fd.read())
