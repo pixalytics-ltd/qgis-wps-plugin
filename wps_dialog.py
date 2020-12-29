@@ -65,6 +65,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pushButtonExecute.clicked.connect(self.execute_process)
             self.comboBoxProcesses.currentIndexChanged.connect(self.process_selected)
             self.input_items = {}
+            self.input_items_all = []
             self.processes = []
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("You have to install OWSlib with fix."))
@@ -132,6 +133,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(input_item)
         # TODO check if there is not a better way
         self.input_items[str(identifier)] = input_item
+        self.input_items_all.append(input_item)
+        self.input_items_all.append(label)
+        self.input_items_all.append(label_id)
         return hbox_layout
 
     def get_process_identifier(self):
@@ -146,13 +150,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.loadProcess.statusChanged.connect(self.on_load_process_response)
         self.loadProcess.start()
 
+    def item_remove(self):
+        for item_to_remove in self.input_items_all:
+            item_to_remove.setParent(None)
+
     def on_load_process_response(self, response):
         process_identifier = self.get_process_identifier()
         if response.status == 200:
             if response.data.abstract is not None:
-                for i in reversed(range(self.verticalLayoutInputs.count())):
-                    for j in reversed(range(self.verticalLayoutInputs.itemAt(i).count())):
-                        self.verticalLayoutInputs.itemAt(i).itemAt(j).widget().setParent(None)
+                self.item_remove()
                 self.textEditProcessDescription.setText(response.data.abstract)
                 self.input_items = {}
                 self.pushButtonExecute.setEnabled(True)
