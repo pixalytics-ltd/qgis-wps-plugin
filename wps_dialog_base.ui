@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>660</x>
-     <y>460</y>
+     <y>500</y>
      <width>131</width>
      <height>71</height>
     </rect>
@@ -111,22 +111,6 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="labelProcessDescription">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>100</y>
-     <width>541</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButtonLoadProcess">
    <property name="enabled">
     <bool>false</bool>
@@ -147,7 +131,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>160</y>
+     <y>200</y>
      <width>621</width>
      <height>371</height>
     </rect>
@@ -186,9 +170,19 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>549</y>
+     <y>589</y>
      <width>771</width>
-     <height>261</height>
+     <height>221</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEditProcessDescription">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>99</y>
+     <width>541</width>
+     <height>91</height>
     </rect>
    </property>
   </widget>

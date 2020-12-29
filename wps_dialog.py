@@ -63,7 +63,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pushButtonLoadProcess.clicked.connect(self.load_process)
             self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
             self.pushButtonExecute.clicked.connect(self.execute_process)
+            self.comboBoxProcesses.currentIndexChanged.connect(self.process_selected)
             self.input_items = {}
+            self.processes = []
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("You have to install OWSlib with fix."))
 
@@ -84,13 +86,22 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def on_load_processes_response(self, response):
         if response.status == 200:
             self.comboBoxProcesses.clear()
-            for proc in response.data:
-                self.comboBoxProcesses.addItem(proc)
+            self.processes = response.data
+            for proc in self.processes:
+                self.comboBoxProcesses.addItem(proc.title)
+            self.show_process_description(0)
             self.pushButtonLoadProcess.setEnabled(True)
             self.textEditLog.append(self.tr("Processes loaded"))
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("Error loading processes"))
             self.textEditLog.append(self.tr("Error loading processes"))
+
+    def show_process_description(self, index):
+        self.textEditProcessDescription.setText("[" + self.processes[index].identifier + "]: " + self.processes[index].abstract)
+
+    def process_selected(self):
+        current_index = self.comboBoxProcesses.currentIndex()
+        self.show_process_description(current_index)
 
     def get_all_layers_input(self):
         return QgsMapLayerComboBox(self.tabInputs)
@@ -113,7 +124,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         return hbox_layout
 
     def get_process_identifier(self):
-        return self.comboBoxProcesses.currentText()
+        return self.processes[self.comboBoxProcesses.currentIndex()].identifier
 
     def load_process(self):
         process_identifier = self.get_process_identifier()
@@ -131,7 +142,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 for i in reversed(range(self.verticalLayoutInputs.count())):
                     for j in reversed(range(self.verticalLayoutInputs.itemAt(i).count())):
                         self.verticalLayoutInputs.itemAt(i).itemAt(j).widget().setParent(None)
-                self.labelProcessDescription.setText(response.data.abstract)
+                self.textEditProcessDescription.setText(response.data.abstract)
                 self.input_items = {}
                 self.pushButtonExecute.setEnabled(True)
                 for x in response.data.dataInputs:

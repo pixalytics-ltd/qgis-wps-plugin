@@ -31,9 +31,9 @@ class GetProcesses(QThread):
         try:
             wps = WebProcessingService(self.url)
             wps.getcapabilities()
-            processes = [x.identifier for x in wps.processes]
+            # processes = [x.identifier for x in wps.processes]
             responseToReturn.status = 200
-            responseToReturn.data = processes
+            responseToReturn.data = wps.processes
         except:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
