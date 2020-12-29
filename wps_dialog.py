@@ -106,7 +106,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def get_all_layers_input(self):
         return QgsMapLayerComboBox(self.tabInputs)
 
-    def get_input(self, identifier, data_type, default_value):
+    def get_input(self, identifier, title, data_type, default_value):
         # TODO check types
         input_item = None
         if data_type == 'ComplexData':
@@ -115,9 +115,18 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             input_item = QLineEdit(self.tabInputs)
             input_item.setText(str(default_value))
         hbox_layout = QHBoxLayout(self.tabInputs)
+        vbox_layout = QVBoxLayout(self.tabInputs)
         label = QLabel(self.tabInputs)
-        label.setText(str(identifier))
-        hbox_layout.addWidget(label)
+        label.setFixedWidth(200)
+        label.setText(str(title))
+        label.setWordWrap(True)
+        vbox_layout.addWidget(label)
+        label_id = QLabel(self.tabInputs)
+        label_id.setFixedWidth(200)
+        label_id.setWordWrap(True)
+        label_id.setText("[" + str(identifier) + "]")
+        vbox_layout.addWidget(label_id)
+        hbox_layout.addLayout(vbox_layout)
         hbox_layout.addWidget(input_item)
         # TODO check if there is not a better way
         self.input_items[str(identifier)] = input_item
@@ -146,7 +155,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.input_items = {}
                 self.pushButtonExecute.setEnabled(True)
                 for x in response.data.dataInputs:
-                    input_item = self.get_input(x.identifier, x.dataType, x.defaultValue)
+                    input_item = self.get_input(x.identifier, x.title, x.dataType, x.defaultValue)
                     self.verticalLayoutInputs.addLayout(input_item)
                 self.tabInputs.setLayout(self.verticalLayoutInputs)
             self.textEditLog.append(self.tr("Process {} loaded".format(process_identifier)))
