@@ -144,7 +144,7 @@
      <string>Inputs</string>
     </attribute>
    </widget>
-   <widget class="QWidget" name="tabOutpts">
+   <widget class="QWidget" name="tabOutputs">
     <attribute name="title">
      <string>Outputs</string>
     </attribute>

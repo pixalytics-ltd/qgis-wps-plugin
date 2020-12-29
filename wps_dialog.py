@@ -62,10 +62,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
             self.pushButtonLoadProcess.clicked.connect(self.load_process)
             self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
+            self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
             self.pushButtonExecute.clicked.connect(self.execute_process)
             self.comboBoxProcesses.currentIndexChanged.connect(self.process_selected)
             self.input_items = {}
             self.input_items_all = []
+            self.output_items_all = []
             self.processes = []
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("You have to install OWSlib with fix."))
@@ -150,24 +152,54 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.loadProcess.statusChanged.connect(self.on_load_process_response)
         self.loadProcess.start()
 
-    def item_remove(self):
-        for item_to_remove in self.input_items_all:
+    def item_remove(self, array):
+        for item_to_remove in array:
             item_to_remove.setParent(None)
+
+    def set_input_items(self, data):
+        self.item_remove(self.input_items_all)
+        self.textEditProcessDescription.setText(data.abstract)
+        self.input_items = {}
+        self.pushButtonExecute.setEnabled(True)
+        for x in data.dataInputs:
+            # print(dir(x))
+            input_item = self.get_input(x.identifier, x.title, x.dataType, x.defaultValue, x.minOccurs)
+            self.verticalLayoutInputs.addLayout(input_item)
+        self.tabInputs.setLayout(self.verticalLayoutInputs)
+
+    def get_output(self, identifier, title, mime_type):
+        hbox_layout = QHBoxLayout(self.tabOutputs)
+        label = QLabel(self.tabOutputs)
+        label.setFixedWidth(200)
+        label.setText(str(title))
+        label.setWordWrap(True)
+        label_mime_type = QLabel(self.tabOutputs)
+        label_mime_type.setWordWrap(True)
+        label_mime_type.setText("[" + str(mime_type) + "]")
+        hbox_layout.addWidget(label)
+        hbox_layout.addWidget(label_mime_type)
+        self.output_items_all.append(label)
+        self.output_items_all.append(label_mime_type)
+        return hbox_layout
+
+    def set_output_items(self, data):
+        # print(dir(data))
+        self.item_remove(self.output_items_all)
+        for x in data.processOutputs:
+            output_item = self.get_output(x.identifier, x.title, x.mimeType)
+            self.verticalLayoutOutputs.addLayout(output_item)
+        self.tabOutputs.setLayout(self.verticalLayoutOutputs)
+            # print(dir(x))
 
     def on_load_process_response(self, response):
         process_identifier = self.get_process_identifier()
         if response.status == 200:
             if response.data.abstract is not None:
-                self.item_remove()
-                self.textEditProcessDescription.setText(response.data.abstract)
-                self.input_items = {}
-                self.pushButtonExecute.setEnabled(True)
-                for x in response.data.dataInputs:
-                    # print(dir(x))
-                    input_item = self.get_input(x.identifier, x.title, x.dataType, x.defaultValue, x.minOccurs)
-                    self.verticalLayoutInputs.addLayout(input_item)
-                self.tabInputs.setLayout(self.verticalLayoutInputs)
-            self.textEditLog.append(self.tr("Process {} loaded".format(process_identifier)))
+                self.set_input_items(response.data)
+                self.set_output_items(response.data)
+                self.textEditLog.append(self.tr("Process {} loaded".format(process_identifier)))
+            else:
+                self.textEditLog.append(self.tr("Error loading process {}".format(process_identifier)))
         else:
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error loading process {}".format(process_identifier)))
