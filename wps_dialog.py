@@ -175,6 +175,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if isinstance(widget, QgsMapLayerComboBox):
                 # TODO check input type and export into it (GML, GeoPackage, etc.)
                 layer = widget.currentLayer()
+                if layer is None:
+                    iface.messageBar().pushMessage(self.tr("Error"), self.tr("There is not any layer"), level=Qgis.Critical)
+                    return
                 if layer.type() == QgsMapLayer.VectorLayer:
                     tmp_ext = '.gml'
                     tmp_frmt = 'GML'
