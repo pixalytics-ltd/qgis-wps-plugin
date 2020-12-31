@@ -247,8 +247,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess.start()
 
     def process_not_known_output(self, response):
-        QMessageBox.information(None, self.tr("ERROR:"), self.tr("Can not load output data into map"))
-        self.textEditLog.append(self.tr("Can not load output data into map"))
+        QMessageBox.information(None, self.tr("INFO:"), self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
         self.textEditLog.append(self.tr("Showing content of the output"))
         self.appendFileContentIntoLog(response.filepath)
 
