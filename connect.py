@@ -1,4 +1,5 @@
 from qgis.PyQt.QtCore import QThread, pyqtSignal
+import tempfile, os
 
 owslib_exists = True
 try:
@@ -13,6 +14,7 @@ class Response():
     status = 200
     data = []
     filepath = None
+    mimeType = None
 
 # TODO create superclass for these classes
 class GetProcesses(QThread):
@@ -86,18 +88,28 @@ class ExecuteProcess(QThread):
     def setInputs(self, inputs):
         self.inputs = inputs
 
+    def getFilePath(self, mimeType):
+        temp_name = next(tempfile._get_candidate_names())
+        defult_tmp_dir = tempfile._get_default_tempdir()
+        suffix = 'zip'
+        if mimeType == 'application/csv':
+            suffix = 'csv'
+        return os.path.join(defult_tmp_dir, temp_name + "." + suffix)
+
     def run(self):
         responseToReturn = Response()
         if self.identifier != "" and len(self.inputs) > 0:
             try:
                 wps = WebProcessingService(self.url)
-                print(self.inputs)
+                # print(self.inputs)
                 execution = wps.execute(self.identifier, self.inputs)
-                # TODO place in some temporary space
-                file_path = '/tmp/out.zip'
+                # TODO handle more outputs
+                responseToReturn.mimeType = execution.processOutputs[0].mimeType
+                file_path = self.getFilePath(responseToReturn.mimeType)
                 execution.getOutput(file_path)
                 responseToReturn.status = 200
                 responseToReturn.filepath = file_path
+
                 # myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
                 # execution = self.wps.execute('d-rain-shp', myinputs)
                 # execution.getOutput('/tmp/out.zip')

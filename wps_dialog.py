@@ -246,20 +246,33 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
 
+    def process_not_known_output(self, response):
+        QMessageBox.information(None, self.tr("ERROR:"), self.tr("Can not load output data into map"))
+        self.textEditLog.append(self.tr("Can not load output data into map"))
+        self.textEditLog.append(self.tr("Showing content of the output"))
+        self.appendFileContentIntoLog(response.filepath)
+
+    def process_output(self, response):
+        process_identifier = self.get_process_identifier()
+        vector = None
+        if response.mimeType == 'application/csv':
+            csv_uri = 'file:///' + response.filepath + '?delimiter=,'
+            vector = QgsVectorLayer(csv_uri, "process {} output".format(process_identifier), 'delimitedtext')
+        if response.mimeType == 'application/x-zipped-shp':
+            vector = QgsVectorLayer('/vsizip/' + response.filepath, "process {} output".format(process_identifier), "ogr")
+        if vector is not None and vector.isValid():
+            QgsProject.instance().addMapLayer(vector)
+            self.textEditLog.append(self.tr("Output data loaded into the map"))
+        else:
+            self.process_not_known_output(response)
+
     def on_execute_process_response(self, response):
         process_identifier = self.get_process_identifier()
         if response.status == 200:
             self.textEditLog.append(self.tr("Process {} executed".format(process_identifier)))
             # TODO check output type
-            vector = QgsVectorLayer('/vsizip/' + response.filepath, "process {} output".format(process_identifier), "ogr")
-            if vector.isValid():
-                QgsProject.instance().addMapLayer(vector)
-                self.textEditLog.append(self.tr("Output data loaded into the map"))
-            else:
-                QMessageBox.information(None, self.tr("ERROR:"), self.tr("Can not load output data into map"))
-                self.textEditLog.append(self.tr("Can not load output data into map"))
-                self.textEditLog.append(self.tr("Showing content of the file"))
-                self.appendFileContentIntoLog(response.filepath)
+            self.process_output(response)
+
         else:
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error executing process {}".format(process_identifier)))
