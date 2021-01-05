@@ -116,7 +116,19 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             input_item = self.get_all_layers_input()
         else:
             input_item = QLineEdit(self.tabInputs)
-            input_item.setText(str(default_value))
+            if str(default_value) == 'None':
+                input_item.setText('')
+            else:
+                input_item.setText(str(default_value))
+        hbox_layout, label, label_id = self.get_input_item_container(identifier, input_item, min_occurs, title)
+        # TODO check if there is not a better way
+        self.input_items[str(identifier)] = input_item
+        self.input_items_all.append(input_item)
+        self.input_items_all.append(label)
+        self.input_items_all.append(label_id)
+        return hbox_layout
+
+    def get_input_item_container(self, identifier, input_item, min_occurs, title):
         hbox_layout = QHBoxLayout(self.tabInputs)
         vbox_layout = QVBoxLayout(self.tabInputs)
         label_id = QLabel(self.tabInputs)
@@ -133,12 +145,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         vbox_layout.addWidget(label)
         hbox_layout.addLayout(vbox_layout)
         hbox_layout.addWidget(input_item)
-        # TODO check if there is not a better way
-        self.input_items[str(identifier)] = input_item
-        self.input_items_all.append(input_item)
-        self.input_items_all.append(label)
-        self.input_items_all.append(label_id)
-        return hbox_layout
+        return hbox_layout, label, label_id
 
     def get_process_identifier(self):
         return self.processes[self.comboBoxProcesses.currentIndex()].identifier
