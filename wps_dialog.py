@@ -119,11 +119,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             input_item.setText(str(default_value))
         hbox_layout = QHBoxLayout(self.tabInputs)
         vbox_layout = QVBoxLayout(self.tabInputs)
-        label = QLabel(self.tabInputs)
-        label.setFixedWidth(200)
-        label.setText(str(title))
-        label.setWordWrap(True)
-        vbox_layout.addWidget(label)
         label_id = QLabel(self.tabInputs)
         label_id.setFixedWidth(200)
         label_id.setWordWrap(True)
@@ -131,6 +126,11 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if min_occurs > 0:
             label_id.setStyleSheet("QLabel { color : red; }");
         vbox_layout.addWidget(label_id)
+        label = QLabel(self.tabInputs)
+        label.setFixedWidth(200)
+        label.setText(str(title))
+        label.setWordWrap(True)
+        vbox_layout.addWidget(label)
         hbox_layout.addLayout(vbox_layout)
         hbox_layout.addWidget(input_item)
         # TODO check if there is not a better way
