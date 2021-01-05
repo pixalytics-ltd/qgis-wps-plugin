@@ -110,6 +110,26 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def get_all_layers_input(self):
         return QgsMapLayerComboBox(self.tabInputs)
 
+    def get_layer_fields(self):
+        return QgsFieldComboBox(self.tabInputs)
+
+    def set_map_layer_cmb_box_connect(self):
+        for param, widget in self.input_items.items():
+            if isinstance(widget, QgsMapLayerComboBox):
+                widget.currentIndexChanged.connect(self.set_layer_to_qgs_field_combo_box)
+
+    def set_layer_to_qgs_field_combo_box(self):
+        # TODO not generic - only last items will be connected
+        layer = None
+        field_cmb_box = None
+        for param, widget in self.input_items.items():
+            if isinstance(widget, QgsFieldComboBox):
+                field_cmb_box = widget
+            if isinstance(widget, QgsMapLayerComboBox):
+                layer = widget.currentLayer()
+        if layer is not None and field_cmb_box is not None:
+            field_cmb_box.setLayer(layer)
+
     def get_input(self, identifier, title, data_type, default_value, min_occurs):
         # TODO check types
         input_item = None
@@ -117,10 +137,13 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             input_item = self.get_all_layers_input()
         else:
             input_item = QLineEdit(self.tabInputs)
-            if str(default_value) == 'None':
-                input_item.setText('')
+            if "column" in identifier:
+                input_item = self.get_layer_fields()
             else:
-                input_item.setText(str(default_value))
+                if str(default_value) == 'None':
+                    input_item.setText('')
+                else:
+                    input_item.setText(str(default_value))
         hbox_layout, label, label_id = self.get_input_item_container(identifier, input_item, min_occurs, title)
         # TODO check if there is not a better way
         self.input_items[str(identifier)] = input_item
@@ -175,6 +198,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             input_item = self.get_input(x.identifier, x.title, x.dataType, x.defaultValue, x.minOccurs)
             self.verticalLayoutInputs.addLayout(input_item)
         self.tabInputs.setLayout(self.verticalLayoutInputs)
+        self.set_layer_to_qgs_field_combo_box()
+        self.set_map_layer_cmb_box_connect()
 
     def get_output(self, identifier, title, mime_type):
         hbox_layout = QHBoxLayout(self.tabOutputs)
@@ -245,6 +270,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 with open(tmp_file) as fd:
                     cdi = ComplexDataInput(fd.read())
                 myinputs.append((param, cdi))
+            elif isinstance(widget, QgsFieldComboBox):
+                myinputs.append((param, widget.currentField()))
             else:
                 # TODO check also other types than just QLineEdit
                 if widget.text() != 'None':
