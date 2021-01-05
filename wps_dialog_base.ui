@@ -111,22 +111,6 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButtonLoadProcess">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>60</y>
-     <width>131</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Load Process</string>
-   </property>
-  </widget>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
@@ -157,7 +141,7 @@
    <property name="geometry">
     <rect>
      <x>660</x>
-     <y>100</y>
+     <y>60</y>
      <width>131</width>
      <height>25</height>
     </rect>

@@ -60,7 +60,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.pushButtonAbout.clicked.connect(self.showAbout)
         if owslib_exists and self.check_owslib_fix():
             self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
-            self.pushButtonLoadProcess.clicked.connect(self.load_process)
             self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
             self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
             self.pushButtonExecute.clicked.connect(self.execute_process)
@@ -93,7 +92,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             for proc in self.processes:
                 self.comboBoxProcesses.addItem(proc.title)
             self.show_process_description(0)
-            self.pushButtonLoadProcess.setEnabled(True)
             self.textEditLog.append(self.tr("Processes loaded"))
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("Error loading processes"))
@@ -105,6 +103,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def process_selected(self):
         current_index = self.comboBoxProcesses.currentIndex()
         self.show_process_description(current_index)
+        self.load_process()
 
     def get_all_layers_input(self):
         return QgsMapLayerComboBox(self.tabInputs)
