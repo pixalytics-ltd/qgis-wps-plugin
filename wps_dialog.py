@@ -79,6 +79,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             return False
 
     def load_processes(self):
+        self.setCursor(Qt.WaitCursor)
         self.textEditLog.append(self.tr("Loading processes ..."))
         self.loadProcesses = GetProcesses()
         self.loadProcesses.setUrl(self.lineEditWpsUrl.text())
@@ -96,6 +97,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("Error loading processes"))
             self.textEditLog.append(self.tr("Error loading processes"))
+        self.setCursor(Qt.ArrowCursor)
 
     def show_process_description(self, index):
         self.textEditProcessDescription.setText("[" + self.processes[index].identifier + "]: " + self.processes[index].abstract)
@@ -150,6 +152,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         return self.processes[self.comboBoxProcesses.currentIndex()].identifier
 
     def load_process(self):
+        self.setCursor(Qt.WaitCursor)
         process_identifier = self.get_process_identifier()
         self.textEditLog.append(self.tr("Loading process {}...".format(process_identifier)))
         self.loadProcess = GetProcess()
@@ -210,8 +213,10 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error loading process {}".format(process_identifier)))
             self.textEditLog.append(self.tr("Error loading process {}".format(process_identifier)))
+        self.setCursor(Qt.ArrowCursor)
 
     def execute_process(self):
+        self.setCursor(Qt.WaitCursor)
         # Async call: https://ouranosinc.github.io/pavics-sdi/tutorials/wps_with_python.html
         process_identifier = self.get_process_identifier()
         myinputs = []
@@ -283,6 +288,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                                     self.tr("Error executing process {}".format(process_identifier)))
             self.textEditLog.append(self.tr("Error executing process {}".format(process_identifier)))
             self.textEditLog.append(response.data)
+        self.setCursor(Qt.ArrowCursor)
 
     def appendFileContentIntoLog(self, file):
         with (open(file, "r")) as f:
