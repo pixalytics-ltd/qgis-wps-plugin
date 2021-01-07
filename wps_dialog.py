@@ -308,13 +308,28 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     # Only for testing purposes
     def postprocess(self, inputs, response):
-        print("POSTPROCESSING")
-        print(inputs)
-        print(response)
+        # print("POSTPROCESSING")
+        # print(inputs)
+        # print(response)
         csv_uri = 'file:///' + response.filepath + '?delimiter=,'
-        print(csv_uri)
-        vector = QgsVectorLayer(csv_uri, "process {} output".format('d-rain-csv'), 'delimitedtext')
-        QgsProject.instance().addMapLayer(vector)
+        # print(csv_uri)
+        csv = QgsVectorLayer(csv_uri, "process {} output".format('d-rain-csv'), 'delimitedtext')
+        QgsProject.instance().addMapLayer(csv)
+        layer = None
+        layerField = None
+        csvField = None
+        for param, widget in inputs.items():
+            if isinstance(widget, QgsMapLayerComboBox):
+                # TODO check input type and export into it (GML, GeoPackage, etc.)
+                layer = widget.currentLayer()
+            elif isinstance(widget, QgsFieldComboBox):
+                layerField = widget.currentField()
+        csvField = csv.fields()[0].name()
+
+        if layer is not None and layerField is not None and csv is not None and csvField is not None:
+            import processing
+            parameters = { 'DISCARD_NONMATCHING' : False, 'FIELD' : layerField, 'FIELDS_TO_COPY' : [], 'FIELD_2' : csvField, 'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1, 'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
+            result = processing.runAndLoadResults('qgis:joinattributestable', parameters)
 
     def postprocess_output(self, process_identifier, inputs, response):
         current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -326,9 +341,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if member == 'wps_postprocessing':
                 handler_class = getattr(module, member)
                 current_source = handler_class()
-                # current_source.postprocess(inputs, response)
+                current_source.postprocess(inputs, response)
                 # only for testig purposes
-                self.postprocess(inputs, response)
+                # self.postprocess(inputs, response)
 
     def process_not_known_output(self, response):
         QMessageBox.information(None, self.tr("INFO:"), self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
