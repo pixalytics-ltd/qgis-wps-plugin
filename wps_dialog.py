@@ -35,6 +35,8 @@ from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
 from qgis.gui import *
 
+import importlib, inspect
+
 from .connect import *
 
 owslib_exists = True
@@ -64,6 +66,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
             self.pushButtonExecute.clicked.connect(self.execute_process)
             self.comboBoxProcesses.currentIndexChanged.connect(self.process_selected)
+            self.handleOutputComboBox = None
             self.input_items = {}
             self.input_items_all = []
             self.output_items_all = []
@@ -207,13 +210,30 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         label.setFixedWidth(200)
         label.setText(str(title))
         label.setWordWrap(True)
+        hbox_layout.addWidget(label)
         label_mime_type = QLabel(self.tabOutputs)
         label_mime_type.setWordWrap(True)
         label_mime_type.setText("[" + str(mime_type) + "]")
-        hbox_layout.addWidget(label)
         hbox_layout.addWidget(label_mime_type)
         self.output_items_all.append(label)
         self.output_items_all.append(label_mime_type)
+        return hbox_layout
+
+    def get_output_options_postprocessing(self):
+        hbox_layout = QHBoxLayout(self.tabOutputs)
+        label = QLabel(self.tabOutputs)
+        label.setFixedWidth(200)
+        label.setText(self.tr('Handle output'))
+        hbox_layout.addWidget(label)
+        self.handleOutputComboBox = QComboBox()
+        self.handleOutputComboBox.addItem(self.tr("Load into map"))
+        process_identifier = self.get_process_identifier()
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', process_identifier + ".py")
+        if os.path.exists(path):
+            self.handleOutputComboBox.addItem(self.tr("Postprocess"))
+        hbox_layout.addWidget(self.handleOutputComboBox)
+        self.output_items_all.append(label)
+        self.output_items_all.append(self.handleOutputComboBox)
         return hbox_layout
 
     def set_output_items(self, data):
@@ -222,6 +242,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         for x in data.processOutputs:
             output_item = self.get_output(x.identifier, x.title, x.mimeType)
             self.verticalLayoutOutputs.addLayout(output_item)
+            output_item_handle = self.get_output_options_postprocessing()
+            self.verticalLayoutOutputs.addLayout(output_item_handle)
         self.tabOutputs.setLayout(self.verticalLayoutOutputs)
             # print(dir(x))
 
@@ -284,6 +306,30 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
 
+    # Only for testing purposes
+    def postprocess(self, inputs, response):
+        print("POSTPROCESSING")
+        print(inputs)
+        print(response)
+        csv_uri = 'file:///' + response.filepath + '?delimiter=,'
+        print(csv_uri)
+        vector = QgsVectorLayer(csv_uri, "process {} output".format('d-rain-csv'), 'delimitedtext')
+        QgsProject.instance().addMapLayer(vector)
+
+    def postprocess_output(self, process_identifier, inputs, response):
+        current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+        current_module_name = os.path.splitext(os.path.basename(current_dir))[0]
+        # process_id = 'd-rain-csv'
+        module = importlib.import_module(".postprocessing." + process_identifier, package=current_module_name)
+        for member in dir(module):
+            # print(member)
+            if member == 'wps_postprocessing':
+                handler_class = getattr(module, member)
+                current_source = handler_class()
+                # current_source.postprocess(inputs, response)
+                # only for testig purposes
+                self.postprocess(inputs, response)
+
     def process_not_known_output(self, response):
         QMessageBox.information(None, self.tr("INFO:"), self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
         self.textEditLog.append(self.tr("Showing content of the output"))
@@ -291,17 +337,20 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def process_output(self, response):
         process_identifier = self.get_process_identifier()
-        vector = None
-        if response.mimeType == 'application/csv':
-            csv_uri = 'file:///' + response.filepath + '?delimiter=,'
-            vector = QgsVectorLayer(csv_uri, "process {} output".format(process_identifier), 'delimitedtext')
-        if response.mimeType == 'application/x-zipped-shp':
-            vector = QgsVectorLayer('/vsizip/' + response.filepath, "process {} output".format(process_identifier), "ogr")
-        if vector is not None and vector.isValid():
-            QgsProject.instance().addMapLayer(vector)
-            self.textEditLog.append(self.tr("Output data loaded into the map"))
+        if self.handleOutputComboBox is not None and self.handleOutputComboBox.currentIndex() == 1:
+            self.postprocess_output(process_identifier, self.input_items, response)
         else:
-            self.process_not_known_output(response)
+            vector = None
+            if response.mimeType == 'application/csv':
+                csv_uri = 'file:///' + response.filepath + '?delimiter=,'
+                vector = QgsVectorLayer(csv_uri, "process {} output".format(process_identifier), 'delimitedtext')
+            if response.mimeType == 'application/x-zipped-shp':
+                vector = QgsVectorLayer('/vsizip/' + response.filepath, "process {} output".format(process_identifier), "ogr")
+            if vector is not None and vector.isValid():
+                QgsProject.instance().addMapLayer(vector)
+                self.textEditLog.append(self.tr("Output data loaded into the map"))
+            else:
+                self.process_not_known_output(response)
 
     def on_execute_process_response(self, response):
         process_identifier = self.get_process_identifier()
@@ -309,7 +358,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.textEditLog.append(self.tr("Process {} executed".format(process_identifier)))
             # TODO check output type
             self.process_output(response)
-
         else:
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error executing process {}".format(process_identifier)))
