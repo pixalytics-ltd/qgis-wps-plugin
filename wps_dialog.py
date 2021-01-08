@@ -341,7 +341,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if member == 'wps_postprocessing':
                 handler_class = getattr(module, member)
                 current_source = handler_class()
-                current_source.postprocess(inputs, response)
+                result = current_source.postprocess(inputs, response)
+                return result
                 # only for testig purposes
                 # self.postprocess(inputs, response)
 
@@ -353,7 +354,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def process_output(self, response):
         process_identifier = self.get_process_identifier()
         if self.handleOutputComboBox is not None and self.handleOutputComboBox.currentIndex() == 1:
-            self.postprocess_output(process_identifier, self.input_items, response)
+            result = self.postprocess_output(process_identifier, self.input_items, response)
+            if result is not None:
+                self.textEditLog.append(self.tr("Postprocessing successfully finished"))
+            else:
+                QMessageBox.information(None, self.tr("INFO:"), self.tr("Postprocessing ended with error."))
+                self.textEditLog.append(self.tr("ERROR: Postprocessing ended with error."))
         else:
             vector = None
             if response.mimeType == 'application/csv':
