@@ -231,6 +231,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', process_identifier + ".py")
         if os.path.exists(path):
             self.handleOutputComboBox.addItem(self.tr("Postprocess"))
+            self.handleOutputComboBox.setCurrentIndex(1)
         hbox_layout.addWidget(self.handleOutputComboBox)
         self.output_items_all.append(label)
         self.output_items_all.append(self.handleOutputComboBox)
