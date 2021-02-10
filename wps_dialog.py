@@ -94,7 +94,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.comboBoxProcesses.clear()
             self.processes = response.data
             for proc in self.processes:
-                self.comboBoxProcesses.addItem(proc.title)
+                self.comboBoxProcesses.addItem('[{}] {}'.format(proc.identifier, proc.title))
             self.show_process_description(0)
             self.textEditLog.append(self.tr("Processes loaded"))
         else:
