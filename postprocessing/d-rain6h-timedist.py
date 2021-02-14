@@ -15,7 +15,7 @@ class wps_postprocessing:
                 csv = QgsVectorLayer(csv_uri, "{} {}".format(process_identifier, identifier), 'delimitedtext')
                 QgsProject.instance().addMapLayer(csv)
 
-                if identifier == 'output_probabilities':
+                if identifier == 'output':
                     layer = None
                     layerField = None
                     csvField = None
@@ -31,8 +31,8 @@ class wps_postprocessing:
                                        'FIELDS_TO_COPY' : [], 'FIELD_2' : csvField,
                                        'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1,
                                        'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
-                        return processing.runAndLoadResults('qgis:joinattributestable', parameters)
-                    else:
-                        return None
+                        print(processing.runAndLoadResults('qgis:joinattributestable', parameters))
         except:
             return None
+
+        return 1
