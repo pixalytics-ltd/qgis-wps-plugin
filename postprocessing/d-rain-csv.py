@@ -10,7 +10,7 @@ class wps_postprocessing:
     def postprocess(self, inputs, response):
         process_identifier = os.path.splitext(os.path.basename(__file__))[0]
         try:
-            csv_uri = 'file:///' + response.output['output']['filePath'] + '?delimiter=,'
+            csv_uri = 'file:///' + response.output['output'].filepath + '?delimiter=,'
             csv = QgsVectorLayer(csv_uri, "{} output".format(process_identifier), 'delimitedtext')
             QgsProject.instance().addMapLayer(csv)
             layer = None
@@ -25,9 +25,9 @@ class wps_postprocessing:
 
             if layer is not None and layerField is not None and csv is not None and csvField is not None:
                 parameters = { 'DISCARD_NONMATCHING' : False, 'FIELD' : layerField, 'FIELDS_TO_COPY' : [], 'FIELD_2' : csvField, 'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1, 'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
-                result = processing.runAndLoadResults('qgis:joinattributestable', parameters)
-                return result
-            else:
-                return None
-        except:
+                processing.runAndLoadResults('qgis:joinattributestable', parameters)
+        except Exception as e:
+            print(e)
             return None
+
+        return 0

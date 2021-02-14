@@ -10,6 +10,11 @@ try:
 except:
     owslib_exists = False
 
+class ResponseOutput:
+    def __init__(self, filepath, minetype):
+        self.filepath = filepath
+        self.minetype = minetype
+
 class Response():
     status = 200
     data = []
@@ -103,10 +108,9 @@ class ExecuteProcess(QThread):
                 execution = wps.execute(self.identifier, self.inputs)
                 for output in execution.processOutputs:
                     filePath = self.getFilePath(output.mimeType)
-                    responseToReturn.output[output.identifier] = {
-                        'mimeType': output.mimeType,
-                        'filePath': filePath
-                    }
+                    responseToReturn.output[output.identifier] = ResponseOutput(
+                        filePath, output.mimeType
+                    )
                     execution.getOutput(filePath, output.identifier)
                 responseToReturn.status = 200
             except Exception as e:

@@ -11,7 +11,7 @@ class wps_postprocessing:
         process_identifier = os.path.splitext(os.path.basename(__file__))[0]
         try:
             for identifier, output in response.output.items():
-                csv_uri = 'file:///' + output['filePath'] + '?delimiter=,'
+                csv_uri = 'file:///' + output.filepath + '?delimiter=,'
                 csv = QgsVectorLayer(csv_uri, "{} {}".format(process_identifier, identifier), 'delimitedtext')
                 QgsProject.instance().addMapLayer(csv)
 
@@ -32,7 +32,8 @@ class wps_postprocessing:
                                        'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1,
                                        'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
                         print(processing.runAndLoadResults('qgis:joinattributestable', parameters))
-        except:
+        except Exception as e:
+            print(e)
             return None
 
-        return 1
+        return 0
