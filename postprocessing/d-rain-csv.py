@@ -1,23 +1,17 @@
-from qgis.PyQt import uic
-from qgis.PyQt import QtWidgets
-from qgis.PyQt import QtGui
+import os
+
 from qgis.utils import iface
-from qgis.core import *
-from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtCore import *
-from qgis.PyQt.QtWidgets import *
-from qgis.gui import *
+from qgis.core import QgsVectorLayer, QgsProject
+from qgis.gui import QgsMapLayerComboBox, QgsFieldComboBox
+
 import processing
 
 class wps_postprocessing:
     def postprocess(self, inputs, response):
+        process_identifier = os.path.splitext(os.path.basename(__file__))[0]
         try:
-            # print("POSTPROCESSING")
-            # print(inputs)
-            # print(response)
-            csv_uri = 'file:///' + response.filepath + '?delimiter=,'
-            # print(csv_uri)
-            csv = QgsVectorLayer(csv_uri, "process {} output".format('d-rain-csv'), 'delimitedtext')
+            csv_uri = 'file:///' + response.output['output']['filePath'] + '?delimiter=,'
+            csv = QgsVectorLayer(csv_uri, "{} output".format(process_identifier), 'delimitedtext')
             QgsProject.instance().addMapLayer(csv)
             layer = None
             layerField = None
