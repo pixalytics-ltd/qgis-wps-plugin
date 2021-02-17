@@ -5,10 +5,12 @@ owslib_exists = True
 try:
     from owslib.wps import WebProcessingService
     from owslib.wps import ComplexDataInput
+    import owslib.wps
     from owslib.util import getTypedValue
     val = getTypedValue('integer', None)
 except:
     owslib_exists = False
+
 
 class Response():
     status = 200
@@ -102,8 +104,10 @@ class ExecuteProcess(QThread):
             try:
                 wps = WebProcessingService(self.url)
                 # print(self.inputs)
-                execution = wps.execute(self.identifier, self.inputs)
+                execution = wps.execute(self.identifier, self.inputs, output=[])
                 # TODO handle more outputs
+
+                owslib.wps.monitorExecution(execution)
                 responseToReturn.mimeType = execution.processOutputs[0].mimeType
                 file_path = self.getFilePath(responseToReturn.mimeType)
                 execution.getOutput(file_path)
