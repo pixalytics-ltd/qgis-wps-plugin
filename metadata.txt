@@ -7,13 +7,13 @@ name=WPS
 qgisMinimumVersion=3.0
 description=This plugin connect to WPS via OWSLib.
 version=0.1
-author=Test
-email=test
+author=Jan Ruzicka
+email=jan.ruzicka@opengeolabs.cz
 
 about=This plugin connect to WPS via OWSLib
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/OpenGeoLabs/qgis-wps-plugin/issues
+repository=https://github.com/OpenGeoLabs/qgis-wps-plugin/
 # End of mandatory metadata
 
 # Recommended items:
@@ -23,9 +23,9 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python, cz, sk
+tags=python, cz, sk, ows, wps
 
-homepage=http://homepage
+homepage=https://github.com/OpenGeoLabs/qgis-wps-plugin
 category=Plugins
 icon=icon.png
 # experimental flag
