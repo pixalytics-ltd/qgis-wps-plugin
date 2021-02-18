@@ -11,12 +11,15 @@ try:
 except:
     owslib_exists = False
 
+class ResponseOutput:
+    def __init__(self, filepath, minetype):
+        self.filepath = filepath
+        self.minetype = minetype
 
 class Response():
     status = 200
     data = []
-    filepath = None
-    mimeType = None
+    output = {}
 
 # TODO create superclass for these classes
 class GetProcesses(QThread):
@@ -103,20 +106,15 @@ class ExecuteProcess(QThread):
         if self.identifier != "" and len(self.inputs) > 0:
             try:
                 wps = WebProcessingService(self.url)
-                # print(self.inputs)
                 execution = wps.execute(self.identifier, self.inputs, output=[])
-                # TODO handle more outputs
-
                 owslib.wps.monitorExecution(execution)
-                responseToReturn.mimeType = execution.processOutputs[0].mimeType
-                file_path = self.getFilePath(responseToReturn.mimeType)
-                execution.getOutput(file_path)
+                for output in execution.processOutputs:
+                    filePath = self.getFilePath(output.mimeType)
+                    responseToReturn.output[output.identifier] = ResponseOutput(
+                        filePath, output.mimeType
+                    )
+                    execution.getOutput(filePath, output.identifier)
                 responseToReturn.status = 200
-                responseToReturn.filepath = file_path
-
-                # myinputs = [('input', cdi), ('return_period', 'N2,N5,N10'), ('rainlength', '120')]
-                # execution = self.wps.execute('d-rain-shp', myinputs)
-                # execution.getOutput('/tmp/out.zip')
             except Exception as e:
                 responseToReturn.status = 500
                 responseToReturn.data = str(e)
