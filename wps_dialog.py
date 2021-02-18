@@ -334,15 +334,16 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if member == 'wps_postprocessing':
                 handler_class = getattr(module, member)
                 current_source = handler_class()
-                result = current_source.postprocess(inputs, response)
-                return result
+                return current_source.postprocess(inputs, response)
                 # only for testig purposes
                 # self.postprocess(inputs, response)
 
-    def process_not_known_output(self, response):
-        QMessageBox.information(None, self.tr("INFO:"), self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
+    def process_not_known_output(self, identifier):
+        QMessageBox.information(
+            None, self.tr("INFO:"),
+            self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
         self.textEditLog.append(self.tr("Showing content of the output"))
-        self.appendFileContentIntoLog(response.filepath)
+        self.appendFileContentIntoLog(identifier)
 
     def process_output(self, response):
         process_identifier = self.get_process_identifier()
@@ -354,17 +355,18 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 QMessageBox.information(None, self.tr("INFO:"), self.tr("Postprocessing ended with error."))
                 self.textEditLog.append(self.tr("ERROR: Postprocessing ended with error."))
         else:
-            vector = None
-            if response.mimeType == 'application/csv':
-                csv_uri = 'file:///' + response.filepath + '?delimiter=,'
-                vector = QgsVectorLayer(csv_uri, "process {} output".format(process_identifier), 'delimitedtext')
-            if response.mimeType == 'application/x-zipped-shp':
-                vector = QgsVectorLayer('/vsizip/' + response.filepath, "process {} output".format(process_identifier), "ogr")
-            if vector is not None and vector.isValid():
-                QgsProject.instance().addMapLayer(vector)
-                self.textEditLog.append(self.tr("Output data loaded into the map"))
-            else:
-                self.process_not_known_output(response)
+            for identifier, item in response.output.items():
+                vector = None
+                if item['mimeType'] == 'application/csv':
+                    csv_uri = 'file:///' + item['filePath'] + '?delimiter=,'
+                    vector = QgsVectorLayer(csv_uri, "{} {}".format(process_identifier, identifier), 'delimitedtext')
+                elif item['mimeType'] == 'application/x-zipped-shp':
+                    vector = QgsVectorLayer('/vsizip/' + item['filePath'], "{} {}".format(process_identifier, identifier), "ogr")
+                if vector is not None and vector.isValid():
+                    QgsProject.instance().addMapLayer(vector)
+                    self.textEditLog.append(self.tr("Output data loaded into the map"))
+                else:
+                    self.process_not_known_output(identifier)
 
     def on_execute_process_response(self, response):
         process_identifier = self.get_process_identifier()

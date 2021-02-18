@@ -1,23 +1,17 @@
-from qgis.PyQt import uic
-from qgis.PyQt import QtWidgets
-from qgis.PyQt import QtGui
+import os
+
 from qgis.utils import iface
-from qgis.core import *
-from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtCore import *
-from qgis.PyQt.QtWidgets import *
-from qgis.gui import *
+from qgis.core import QgsVectorLayer, QgsProject
+from qgis.gui import QgsMapLayerComboBox, QgsFieldComboBox
+
 import processing
 
 class wps_postprocessing:
     def postprocess(self, inputs, response):
+        process_identifier = os.path.splitext(os.path.basename(__file__))[0]
         try:
-            # print("POSTPROCESSING")
-            # print(inputs)
-            # print(response)
-            csv_uri = 'file:///' + response.filepath + '?delimiter=,'
-            # print(csv_uri)
-            csv = QgsVectorLayer(csv_uri, "process {} output".format('d-rain-csv'), 'delimitedtext')
+            csv_uri = 'file:///' + response.output['output'].filepath + '?delimiter=,'
+            csv = QgsVectorLayer(csv_uri, "{} output".format(process_identifier), 'delimitedtext')
             QgsProject.instance().addMapLayer(csv)
             layer = None
             layerField = None
@@ -31,9 +25,9 @@ class wps_postprocessing:
 
             if layer is not None and layerField is not None and csv is not None and csvField is not None:
                 parameters = { 'DISCARD_NONMATCHING' : False, 'FIELD' : layerField, 'FIELDS_TO_COPY' : [], 'FIELD_2' : csvField, 'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1, 'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
-                result = processing.runAndLoadResults('qgis:joinattributestable', parameters)
-                return result
-            else:
-                return None
-        except:
+                processing.runAndLoadResults('qgis:joinattributestable', parameters)
+        except Exception as e:
+            print(e)
             return None
+
+        return 0
