@@ -3,9 +3,7 @@ import tempfile, os
 
 owslib_exists = True
 try:
-    from owslib.wps import WebProcessingService
-    from owslib.wps import ComplexDataInput
-    import owslib.wps
+    from owslib.wps import WebProcessingService, ComplexDataInput, monitorExecution
     from owslib.util import getTypedValue
     val = getTypedValue('integer', None)
 except:
@@ -107,7 +105,7 @@ class ExecuteProcess(QThread):
             try:
                 wps = WebProcessingService(self.url)
                 execution = wps.execute(self.identifier, self.inputs, output=[])
-                owslib.wps.monitorExecution(execution)
+                monitorExecution(execution)
                 for output in execution.processOutputs:
                     filePath = self.getFilePath(output.mimeType)
                     responseToReturn.output[output.identifier] = ResponseOutput(
