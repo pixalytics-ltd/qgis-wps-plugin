@@ -3,7 +3,7 @@ import tempfile, os
 
 owslib_exists = True
 try:
-    from owslib.wps import WebProcessingService, ComplexDataInput, monitorExecution
+    from owslib.wps import WebProcessingService, ComplexDataInput 
     from owslib.util import getTypedValue
     val = getTypedValue('integer', None)
 except:
@@ -105,7 +105,7 @@ class ExecuteProcess(QThread):
             try:
                 wps = WebProcessingService(self.url)
                 execution = wps.execute(self.identifier, self.inputs, output=[])
-                monitorExecution(execution)
+                self.monitorExecution(execution)
                 for output in execution.processOutputs:
                     filePath = self.getFilePath(output.mimeType)
                     responseToReturn.output[output.identifier] = ResponseOutput(
@@ -119,3 +119,27 @@ class ExecuteProcess(QThread):
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
+
+
+    def monitorExecution(self, execution, sleepSecs=3, download=False, filepath=None):
+        '''
+        used from owslib/owslib/wps.py
+        '''
+        while execution.isComplete() is False:
+            execution.checkStatus(sleepSecs=sleepSecs)
+
+            ##############
+            # Tady to, Martine, použij jak potřebuješ
+            print(execution.status, execution.percentComplete, execution.statusMessage)
+
+        if execution.isSucceded():
+            if download:
+                execution.getOutput(filepath=filepath)
+            else:
+                for output in execution.processOutputs:
+                    if output.reference is not None:
+                        print('Output URL=%s' % output.reference)
+        else:
+            for ex in execution.errors:
+                print('Error: code=%s, locator=%s, text=%s' %
+                        (ex.code, ex.locator, ex.text))
