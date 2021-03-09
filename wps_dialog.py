@@ -338,12 +338,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 # only for testig purposes
                 # self.postprocess(inputs, response)
 
-    def process_not_known_output(self, identifier):
+    def process_not_known_output(self, item):
         QMessageBox.information(
             None, self.tr("INFO:"),
             self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
         self.textEditLog.append(self.tr("Showing content of the output"))
-        self.appendFileContentIntoLog(identifier)
+        self.appendFileContentIntoLog(item)
 
     def process_output(self, response):
         process_identifier = self.get_process_identifier()
@@ -356,33 +356,39 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.textEditLog.append(self.tr("ERROR: Postprocessing ended with error."))
         else:
             for identifier, item in response.output.items():
+                # dir(item)
                 vector = None
-                if item['mimeType'] == 'application/csv':
-                    csv_uri = 'file:///' + item['filePath'] + '?delimiter=,'
+                if item.minetype == 'application/csv':
+                    csv_uri = 'file:///' + item.filepath + '?delimiter=,'
                     vector = QgsVectorLayer(csv_uri, "{} {}".format(process_identifier, identifier), 'delimitedtext')
-                elif item['mimeType'] == 'application/x-zipped-shp':
-                    vector = QgsVectorLayer('/vsizip/' + item['filePath'], "{} {}".format(process_identifier, identifier), "ogr")
+                elif item.minetype == 'application/x-zipped-shp':
+                    vector = QgsVectorLayer('/vsizip/' + item.filepath, "{} {}".format(process_identifier, identifier), "ogr")
                 if vector is not None and vector.isValid():
                     QgsProject.instance().addMapLayer(vector)
                     self.textEditLog.append(self.tr("Output data loaded into the map"))
                 else:
-                    self.process_not_known_output(identifier)
+                    self.process_not_known_output(item)
 
     def on_execute_process_response(self, response):
         process_identifier = self.get_process_identifier()
         if response.status == 200:
             self.textEditLog.append(self.tr("Process {} executed".format(process_identifier)))
-            # TODO check output type
             self.process_output(response)
-        else:
+            self.setCursor(Qt.ArrowCursor)
+        if response.status == 201:
+            self.textEditLog.append(self.tr("Process {} ".format(process_identifier) + " Status: " + response.data['status'] + " Message: " + response.data['message']))
+            print(response.data)
+        if response.status == 500:
+            self.textEditLog.append(self.tr("Process {} executed".format(process_identifier)))
+            self.process_output(response)
+            self.setCursor(Qt.ArrowCursor)
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error executing process {}".format(process_identifier)))
             self.textEditLog.append(self.tr("Error executing process {}".format(process_identifier)))
             self.textEditLog.append(response.data)
-        self.setCursor(Qt.ArrowCursor)
 
-    def appendFileContentIntoLog(self, file):
-        with (open(file, "r")) as f:
+    def appendFileContentIntoLog(self, item):
+        with (open(item.filepath, "r")) as f:
             self.textEditLog.append(str(f.read()))
 
     def showAbout(self):

@@ -125,21 +125,34 @@ class ExecuteProcess(QThread):
         '''
         used from owslib/owslib/wps.py
         '''
+        responseToReturn = Response()
         while execution.isComplete() is False:
             execution.checkStatus(sleepSecs=sleepSecs)
 
             ##############
             # Tady to, Martine, použij jak potřebuješ
-            print(execution.status, execution.percentComplete, execution.statusMessage)
+            responseToReturn.status = 201
+            responseToReturn.data = {
+                "status": execution.status,
+                "message": execution.statusMessage
+            }
+            # WPSExecution' object has no attribute 'percentComplete
+            # responseToReturn.data = {
+            #     "status": execution.status,
+            #     "percent": execution.percentComplete,
+            #     "message": execution.statusMessage
+            # }
+            self.statusChanged.emit(responseToReturn)
+            # print(execution.status, execution.percentComplete, execution.statusMessage)
 
-        if execution.isSucceded():
-            if download:
-                execution.getOutput(filepath=filepath)
-            else:
-                for output in execution.processOutputs:
-                    if output.reference is not None:
-                        print('Output URL=%s' % output.reference)
-        else:
-            for ex in execution.errors:
-                print('Error: code=%s, locator=%s, text=%s' %
-                        (ex.code, ex.locator, ex.text))
+        # if execution.isSucceded():
+        #     if download:
+        #         execution.getOutput(filepath=filepath)
+        #     else:
+        #         for output in execution.processOutputs:
+        #             if output.reference is not None:
+        #                 print('Output URL=%s' % output.reference)
+        # else:
+        #     for ex in execution.errors:
+        #         print('Error: code=%s, locator=%s, text=%s' %
+        #                 (ex.code, ex.locator, ex.text))
