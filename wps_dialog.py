@@ -59,8 +59,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         super(WpsDialog, self).__init__(parent)
         self.iface = iface
         self.setupUi(self)
-        self.pushButtonAbout.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "icons/cropped-opengeolabs-logo-small.png")))
-        self.pushButtonAbout.clicked.connect(self.showAbout)
         if owslib_exists and self.check_owslib_fix():
             self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
             self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
@@ -391,9 +389,3 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def appendFileContentIntoLog(self, item):
         with (open(item.filepath, "r")) as f:
             self.textEditLog.append(str(f.read()))
-
-    def showAbout(self):
-        try:
-            webbrowser.get().open("http://opengeolabs.cz")
-        except (webbrowser.Error):
-            self.iface.messageBar().pushMessage(self.tr("GeoData", "Error"), self.tr("GeoData", "Can not find web browser to open page about"), level=Qgis.Critical)

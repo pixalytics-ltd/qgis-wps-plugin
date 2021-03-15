@@ -13,26 +13,6 @@
   <property name="windowTitle">
    <string>WPS Plugin</string>
   </property>
-  <widget class="QPushButton" name="pushButtonAbout">
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>500</y>
-     <width>131</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="icon">
-    <iconset>
-     <normaloff>icons/cropped-opengeolabs-logo-small.png</normaloff>icons/cropped-opengeolabs-logo-small.png</iconset>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>80</width>
-     <height>80</height>
-    </size>
-   </property>
-  </widget>
   <widget class="QLabel" name="labelRuianError">
    <property name="geometry">
     <rect>
@@ -141,7 +121,7 @@
    <property name="geometry">
     <rect>
      <x>660</x>
-     <y>60</y>
+     <y>200</y>
      <width>131</width>
      <height>25</height>
     </rect>
