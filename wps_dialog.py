@@ -372,14 +372,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def on_execute_process_response(self, response):
         process_identifier = self.get_process_identifier()
         if response.status == 200:
-            self.textEditLog.append(self.tr("Process {} executed".format(process_identifier)))
+            self.textEditLog.append(self.tr("Process {} successfully finished".format(process_identifier)))
             self.process_output(response)
             self.setCursor(Qt.ArrowCursor)
         if response.status == 201:
-            self.textEditLog.append(self.tr("Process {} ".format(process_identifier) + " Status: " + response.data['status'] + " Message: " + response.data['message']))
-            print(response.data)
+            self.textEditLog.append(self.tr("Process '{}': {}% {}".format(
+                process_identifier, response.data['percent'], response.data['message'], 
+            )))
         if response.status == 500:
-            self.textEditLog.append(self.tr("Process {} executed".format(process_identifier)))
+            self.textEditLog.append(self.tr("Process {} failed".format(process_identifier)))
             self.process_output(response)
             self.setCursor(Qt.ArrowCursor)
             QMessageBox.information(None, self.tr("ERROR:"),

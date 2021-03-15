@@ -129,21 +129,13 @@ class ExecuteProcess(QThread):
         while execution.isComplete() is False:
             execution.checkStatus(sleepSecs=sleepSecs)
 
-            ##############
-            # Tady to, Martine, použij jak potřebuješ
             responseToReturn.status = 201
             responseToReturn.data = {
                 "status": execution.status,
-                "message": execution.statusMessage
+                "message": execution.statusMessage,
+                "percent": execution.percentCompleted
             }
-            # WPSExecution' object has no attribute 'percentComplete
-            # responseToReturn.data = {
-            #     "status": execution.status,
-            #     "percent": execution.percentComplete,
-            #     "message": execution.statusMessage
-            # }
             self.statusChanged.emit(responseToReturn)
-            # print(execution.status, execution.percentComplete, execution.statusMessage)
 
         # if execution.isSucceded():
         #     if download:
