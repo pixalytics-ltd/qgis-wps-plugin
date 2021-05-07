@@ -339,7 +339,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def process_not_known_output(self, item):
         QMessageBox.information(
             None, self.tr("INFO:"),
-            self.tr("Process sucesfully finished. The output can not be loaded into map. Printing output into log."))
+            self.tr("Process sucesfully finished. The output can not be loaded into map. "
+                    "Printing output into log."))
         self.textEditLog.append(self.tr("Showing content of the output"))
         self.appendFileContentIntoLog(item)
 
@@ -387,5 +388,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.textEditLog.append(response.data)
 
     def appendFileContentIntoLog(self, item):
-        with (open(item.filepath, "r")) as f:
-            self.textEditLog.append(str(f.read()))
+        # with (open(item.filepath, "r")) as f:
+        #     self.textEditLog.append(str(f.read()))
+        self.textEditLog.append("File: {} (minetype: {})".format(item.filepath, item.minetype))
