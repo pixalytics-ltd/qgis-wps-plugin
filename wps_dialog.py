@@ -355,7 +355,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.textEditLog.append(self.tr("ERROR: Postprocessing ended with error."))
         else:
             for identifier, item in response.output.items():
-                print(item.minetype)
                 layer = None
                 layer_name = "{} {}".format(process_identifier, identifier)
                 if item.minetype == 'application/csv':
