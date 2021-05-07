@@ -355,15 +355,26 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.textEditLog.append(self.tr("ERROR: Postprocessing ended with error."))
         else:
             for identifier, item in response.output.items():
-                # dir(item)
-                vector = None
+                print(item.minetype)
+                layer = None
+                layer_name = "{} {}".format(process_identifier, identifier)
                 if item.minetype == 'application/csv':
-                    csv_uri = 'file:///' + item.filepath + '?delimiter=,'
-                    vector = QgsVectorLayer(csv_uri, "{} {}".format(process_identifier, identifier), 'delimitedtext')
+                    layer = QgsVectorLayer(
+                        'file:///' + item.filepath + '?delimiter=,',
+                        layer_name, 'delimitedtext'
+                    )
                 elif item.minetype == 'application/x-zipped-shp':
-                    vector = QgsVectorLayer('/vsizip/' + item.filepath, "{} {}".format(process_identifier, identifier), "ogr")
-                if vector is not None and vector.isValid():
-                    QgsProject.instance().addMapLayer(vector)
+                    layer = QgsVectorLayer(
+                        '/vsizip/' + item.filepath,
+                        "layer_name",
+                        "ogr")
+                elif item.minetype == 'image/tiff; subtype=geotiff':
+                    layer = QgsRasterLayer(
+                        item.filepath,
+                        "layer_name"
+                    )
+                if layer is not None and layer.isValid():
+                    QgsProject.instance().addMapLayer(layer)
                     self.textEditLog.append(self.tr("Output data loaded into the map"))
                 else:
                     self.process_not_known_output(item)

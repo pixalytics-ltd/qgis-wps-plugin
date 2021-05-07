@@ -97,6 +97,8 @@ class ExecuteProcess(QThread):
         suffix = 'zip'
         if mimeType == 'application/csv':
             suffix = 'csv'
+        elif mimeType == 'image/tiff; subtype=geotiff':
+            suffix = 'tif'
         return os.path.join(defult_tmp_dir, temp_name + "." + suffix)
 
     def run(self):
