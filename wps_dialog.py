@@ -385,6 +385,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.textEditLog.append(self.tr("Process '{}': {}% {}".format(
                 process_identifier, response.data['percent'], response.data['message'], 
             )))
+            self.progressBar.setValue(int(response.data['percent']))
         if response.status == 500:
             self.textEditLog.append(self.tr("Process {} failed".format(process_identifier)))
             self.process_output(response)
