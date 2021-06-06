@@ -60,11 +60,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.iface = iface
         self.setupUi(self)
         if owslib_exists and self.check_owslib_fix():
-            self.pushButtonLoadProcesses.clicked.connect(self.load_processes)
             self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
             self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
             self.pushButtonExecute.clicked.connect(self.execute_process)
-            self.comboBoxProcesses.currentIndexChanged.connect(self.process_selected)
             self.handleOutputComboBox = None
             self.input_items = {}
             self.input_items_all = []
@@ -173,18 +171,21 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(input_item)
         return hbox_layout, label, label_id
 
-    def get_process_identifier(self):
-        return self.processes[self.comboBoxProcesses.currentIndex()].identifier
+    def set_service_url(self, url):
+        self.service_url = url
+
+    def set_process_identifier(self, id):
+        self.process_identifier = id
 
     def load_process(self):
-        self.setCursor(Qt.WaitCursor)
-        process_identifier = self.get_process_identifier()
-        self.textEditLog.append(self.tr("Loading process {}...".format(process_identifier)))
-        self.loadProcess = GetProcess()
-        self.loadProcess.setUrl(self.lineEditWpsUrl.text())
-        self.loadProcess.setIdentifier(process_identifier)
-        self.loadProcess.statusChanged.connect(self.on_load_process_response)
-        self.loadProcess.start()
+        if self.process_identifier is not None and self.service_url is not None:
+            self.setCursor(Qt.WaitCursor)
+            self.textEditLog.setText(self.tr("Loading process {}...".format(self.process_identifier)))
+            self.loadProcess = GetProcess()
+            self.loadProcess.setUrl(self.service_url)
+            self.loadProcess.setIdentifier(self.process_identifier)
+            self.loadProcess.statusChanged.connect(self.on_load_process_response)
+            self.loadProcess.start()
 
     def item_remove(self, array):
         for item_to_remove in array:
@@ -192,7 +193,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def set_input_items(self, data):
         self.item_remove(self.input_items_all)
-        self.textEditProcessDescription.setText(data.abstract)
         self.input_items = {}
         self.pushButtonExecute.setEnabled(True)
         for x in data.dataInputs:
@@ -225,8 +225,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(label)
         self.handleOutputComboBox = QComboBox()
         self.handleOutputComboBox.addItem(self.tr("Load into map"))
-        process_identifier = self.get_process_identifier()
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', process_identifier + ".py")
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', self.process_identifier + ".py")
         if os.path.exists(path):
             self.handleOutputComboBox.addItem(self.tr("Postprocess"))
             self.handleOutputComboBox.setCurrentIndex(1)
@@ -245,24 +244,22 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tabOutputs.setLayout(self.verticalLayoutOutputs)
 
     def on_load_process_response(self, response):
-        process_identifier = self.get_process_identifier()
         if response.status == 200:
             if response.data.abstract is not None:
                 self.set_input_items(response.data)
                 self.set_output_items(response.data)
-                self.textEditLog.append(self.tr("Process {} loaded".format(process_identifier)))
+                self.textEditLog.append(self.tr("Process {} loaded".format(self.process_identifier)))
             else:
-                self.textEditLog.append(self.tr("Error loading process {}".format(process_identifier)))
+                self.textEditLog.append(self.tr("Error loading process {}".format(self.process_identifier)))
         else:
             QMessageBox.information(None, self.tr("ERROR:"),
-                                    self.tr("Error loading process {}".format(process_identifier)))
-            self.textEditLog.append(self.tr("Error loading process {}".format(process_identifier)))
+                                    self.tr("Error loading process {}".format(self.process_identifier)))
+            self.textEditLog.append(self.tr("Error loading process {}".format(self.process_identifier)))
         self.setCursor(Qt.ArrowCursor)
 
     def execute_process(self):
         self.setCursor(Qt.WaitCursor)
         # Async call: https://ouranosinc.github.io/pavics-sdi/tutorials/wps_with_python.html
-        process_identifier = self.get_process_identifier()
         myinputs = []
         for param, widget in self.input_items.items():
             if isinstance(widget, QgsMapLayerComboBox):
@@ -279,7 +276,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     return
 
                 tmp_file = QgsProcessingUtils.generateTempFilename(
-                    process_identifier + '_' + param) + tmp_ext
+                    self.process_identifier + '_' + param) + tmp_ext
                 QgsVectorFileWriter.writeAsVectorFormat(
                     layer,
                     tmp_file,
@@ -295,10 +292,10 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 # TODO check also other types than just QLineEdit
                 if widget.text() != 'None':
                     myinputs.append((param, widget.text()))
-        self.textEditLog.append(self.tr("Executing {} process ...".format(process_identifier)))
+        self.textEditLog.append(self.tr("Executing {} process ...".format(self.process_identifier)))
         self.executeProcess = ExecuteProcess()
-        self.executeProcess.setUrl(self.lineEditWpsUrl.text())
-        self.executeProcess.setIdentifier(process_identifier)
+        self.executeProcess.setUrl(self.service_url)
+        self.executeProcess.setIdentifier(self.process_identifier)
         self.executeProcess.setInputs(myinputs)
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
@@ -345,7 +342,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.appendFileContentIntoLog(item)
 
     def process_output(self, response):
-        process_identifier = self.get_process_identifier()
+        process_identifier = self.process_identifier
         if self.handleOutputComboBox is not None and self.handleOutputComboBox.currentIndex() == 1:
             result = self.postprocess_output(process_identifier, self.input_items, response)
             if result is not None:
@@ -379,7 +376,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     self.process_not_known_output(item)
 
     def on_execute_process_response(self, response):
-        process_identifier = self.get_process_identifier()
+        process_identifier = self.process_identifier
         if response.status == 200:
             self.textEditLog.append(self.tr("Process {} successfully finished".format(process_identifier)))
             self.process_output(response)

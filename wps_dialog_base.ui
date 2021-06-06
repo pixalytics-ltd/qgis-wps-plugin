@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>807</width>
-    <height>831</height>
+    <width>659</width>
+    <height>563</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WPS Plugin</string>
+   <string>WPS Plugin Process Execute</string>
   </property>
   <widget class="QLabel" name="labelRuianError">
    <property name="geometry">
@@ -29,73 +29,11 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEditWpsUrl">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>20</y>
-     <width>541</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>https://rain1.fsv.cvut.cz/services/wps</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="labelWpsUrl">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>71</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>WPS URL:</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButtonLoadProcesses">
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>20</y>
-     <width>131</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Load Processes</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="labelProcesses">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>60</y>
-     <width>71</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Processes:</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="comboBoxProcesses">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>60</y>
-     <width>541</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>200</y>
+     <y>30</y>
      <width>621</width>
      <height>371</height>
     </rect>
@@ -120,8 +58,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>660</x>
-     <y>200</y>
+     <x>510</x>
+     <y>520</y>
      <width>131</width>
      <height>25</height>
     </rect>
@@ -134,18 +72,8 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>589</y>
-     <width>771</width>
-     <height>221</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEditProcessDescription">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>99</y>
-     <width>541</width>
+     <y>410</y>
+     <width>621</width>
      <height>91</height>
     </rect>
    </property>
