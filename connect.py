@@ -1,13 +1,8 @@
 from qgis.PyQt.QtCore import QThread, pyqtSignal
 import tempfile, os
-
-owslib_exists = True
-try:
-    from owslib.wps import WebProcessingService, ComplexDataInput 
-    from owslib.util import getTypedValue
-    val = getTypedValue('integer', None)
-except:
-    owslib_exists = False
+from .check_ows_lib import CheckOwsLib
+from owslib.wps import WebProcessingService
+from owslib.wps import ComplexDataInput
 
 class ResponseOutput:
     def __init__(self, filepath, minetype):
@@ -39,7 +34,8 @@ class GetProcesses(QThread):
             # processes = [x.identifier for x in wps.processes]
             responseToReturn.status = 200
             responseToReturn.data = wps.processes
-        except:
+        except Exception as e:
+            print(e)
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
 

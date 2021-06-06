@@ -39,14 +39,9 @@ from qgis.gui import *
 import importlib, inspect
 
 from .connect import *
-
-owslib_exists = True
-try:
-    from owslib.wps import WebProcessingService
-    from owslib.wps import ComplexDataInput
-    from owslib.util import getTypedValue
-except:
-    owslib_exists = False
+from .check_ows_lib import CheckOwsLib
+from owslib.wps import WebProcessingService
+from owslib.wps import ComplexDataInput
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -59,24 +54,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         super(WpsDialog, self).__init__(parent)
         self.iface = iface
         self.setupUi(self)
-        if owslib_exists and self.check_owslib_fix():
-            self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
-            self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
-            self.pushButtonExecute.clicked.connect(self.execute_process)
-            self.handleOutputComboBox = None
-            self.input_items = {}
-            self.input_items_all = []
-            self.output_items_all = []
-            self.processes = []
-        else:
-            QMessageBox.information(None, self.tr("ERROR:"), self.tr("You have to install OWSlib with fix."))
 
-    def check_owslib_fix(self):
-        try:
-            val = getTypedValue('integer', None)
-            return True
-        except:
-            return False
+        self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
+        self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
+        self.pushButtonExecute.clicked.connect(self.execute_process)
+        self.handleOutputComboBox = None
+        self.input_items = {}
+        self.input_items_all = []
+        self.output_items_all = []
+        self.processes = []
 
     def load_processes(self):
         self.setCursor(Qt.WaitCursor)

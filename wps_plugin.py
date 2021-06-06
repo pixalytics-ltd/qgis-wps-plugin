@@ -23,12 +23,14 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QMessageBox, QAction
 
 # Import the code for the DockWidget
 from .wps_plugin_dockwidget import WPSWidgetDockWidget
 import os.path
-
+from .check_ows_lib import CheckOwsLib
+from owslib.wps import WebProcessingService
+from owslib.wps import ComplexDataInput
 
 class WPSWidget:
     """QGIS Plugin Implementation."""
@@ -205,22 +207,28 @@ class WPSWidget:
     def run(self):
         """Run method that loads and starts the plugin"""
 
-        if not self.pluginIsActive:
-            self.pluginIsActive = True
+        if CheckOwsLib.isValid():
 
-            #print "** STARTING WPSWidget"
+            if not self.pluginIsActive:
+                self.pluginIsActive = True
 
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
-                # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = WPSWidgetDockWidget(self.iface)
+                #print "** STARTING WPSWidget"
 
-            # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+                # dockwidget may not exist if:
+                #    first run of plugin
+                #    removed on close (see self.onClosePlugin method)
+                if self.dockwidget == None:
+                    # Create the dockwidget (after translation) and keep reference
+                    self.dockwidget = WPSWidgetDockWidget(self.iface)
 
-            # show the dockwidget
-            # TODO: fix to allow choice of dock location
-            self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockwidget)
-            self.dockwidget.show()
+                # connect to provide cleanup on closing of dockwidget
+                self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+
+                # show the dockwidget
+                # TODO: fix to allow choice of dock location
+                self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockwidget)
+                self.dockwidget.show()
+
+        else:
+
+            QMessageBox.information(None, self.tr("ERROR:"), self.tr("You have to install OWSlib with fix. At least version 0.22.0"))

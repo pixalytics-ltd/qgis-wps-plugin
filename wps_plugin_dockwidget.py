@@ -41,6 +41,11 @@ import json
 
 from .connect import *
 from .wps_dialog import WpsDialog
+from .check_ows_lib import CheckOwsLib
+
+from owslib.wps import WebProcessingService
+from owslib.wps import ComplexDataInput
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wps_plugin_dockwidget_base.ui'))
@@ -180,11 +185,14 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.setCursor(Qt.WaitCursor)
 #             self.textEditLog.append(self.tr("Loading processes ..."))
             self.loadProcesses = GetProcesses()
+            print(url)
             self.loadProcesses.setUrl(url)
             self.loadProcesses.statusChanged.connect(self.on_load_processes_response)
             self.loadProcesses.start()
 
     def on_load_processes_response(self, response):
+        print(response.status)
+        print(response.data)
         if response.status == 200:
             self.processes = response.data
             service = self.get_selected_item()
