@@ -206,11 +206,8 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 process.setData(0, Qt.UserRole, service_url + '|' + str(id) + '|' + str(proc.identifier))
 #                 print(proc.title)
                 id += 1
-            self.show_process_description(0)
-#             self.textEditLog.append(self.tr("Processes loaded"))
         else:
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("Error loading processes"))
-#             self.textEditLog.append(self.tr("Error loading processes"))
         self.setCursor(Qt.ArrowCursor)
 
     def show_process_description(self, index):

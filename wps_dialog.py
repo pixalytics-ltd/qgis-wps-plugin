@@ -47,6 +47,7 @@ from owslib.wps import ComplexDataInput
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wps_dialog_base.ui'))
 
+DATE_TIME_KEYWORDS = ['date', 'datum', 'type']
 
 class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, iface, parent=None):
@@ -63,27 +64,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.input_items_all = []
         self.output_items_all = []
         self.processes = []
-
-    def load_processes(self):
-        self.setCursor(Qt.WaitCursor)
-        self.textEditLog.append(self.tr("Loading processes ..."))
-        self.loadProcesses = GetProcesses()
-        self.loadProcesses.setUrl(self.lineEditWpsUrl.text())
-        self.loadProcesses.statusChanged.connect(self.on_load_processes_response)
-        self.loadProcesses.start()
-
-    def on_load_processes_response(self, response):
-        if response.status == 200:
-            self.comboBoxProcesses.clear()
-            self.processes = response.data
-            for proc in self.processes:
-                self.comboBoxProcesses.addItem('[{}] {}'.format(proc.identifier, proc.title))
-            self.show_process_description(0)
-            self.textEditLog.append(self.tr("Processes loaded"))
-        else:
-            QMessageBox.information(None, self.tr("ERROR:"), self.tr("Error loading processes"))
-            self.textEditLog.append(self.tr("Error loading processes"))
-        self.setCursor(Qt.ArrowCursor)
 
     def show_process_description(self, index):
         self.textEditProcessDescription.setText("[" + self.processes[index].identifier + "]: " + self.processes[index].abstract)
@@ -116,6 +96,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if layer is not None and field_cmb_box is not None:
             field_cmb_box.setLayer(layer)
 
+    def isDateInput(self, identifier, title):
+        for item in DATE_TIME_KEYWORDS:
+            if item in identifier or "date" in title:
+                return True
+        return False
+
     def get_input(self, identifier, title, data_type, default_value, min_occurs):
         # TODO check types
         input_item = None
@@ -125,6 +111,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             input_item = QLineEdit(self.tabInputs)
             if "column" in identifier:
                 input_item = self.get_layer_fields()
+            elif self.isDateInput(identifier, title):
+                input_item = QgsDateTimeEdit(self.tabInputs)
             else:
                 if str(default_value) == 'None':
                     input_item.setText('')
@@ -274,6 +262,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 myinputs.append((param, cdi))
             elif isinstance(widget, QgsFieldComboBox):
                 myinputs.append((param, widget.currentField()))
+            elif isinstance(widget, QgsDateTimeEdit):
+                myinputs.append((param, widget.date().toString('yyyy-MM-dd')))
             else:
                 # TODO check also other types than just QLineEdit
                 if widget.text() != 'None':
@@ -282,6 +272,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess = ExecuteProcess()
         self.executeProcess.setUrl(self.service_url)
         self.executeProcess.setIdentifier(self.process_identifier)
+        print(myinputs)
         self.executeProcess.setInputs(myinputs)
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
