@@ -27,5 +27,5 @@
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     #
-    from .wps_plugin_ogl import WPSWidget
+    from .wps_plugin import WPSWidget
     return WPSWidget(iface)

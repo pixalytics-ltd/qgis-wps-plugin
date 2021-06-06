@@ -26,7 +26,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
 # Import the code for the DockWidget
-from .wps_plugin_ogl_dockwidget import WPSWidgetDockWidget
+from .wps_plugin_dockwidget import WPSWidgetDockWidget
 import os.path
 
 
@@ -52,7 +52,7 @@ class WPSWidget:
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'WPSWidget_{}.qm'.format(locale))
+            'wps_plugin_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()

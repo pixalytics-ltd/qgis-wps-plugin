@@ -43,7 +43,7 @@ from .connect import *
 from .wps_dialog import WpsDialog
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'wps_plugin_ogl_dockwidget_base.ui'))
+    os.path.dirname(__file__), 'wps_plugin_dockwidget_base.ui'))
 
 
 class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
