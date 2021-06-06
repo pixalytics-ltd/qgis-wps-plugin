@@ -168,12 +168,12 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if item.data(0, Qt.UserRole) is not None:
                 id = item.data(0, Qt.UserRole)
                 if '|' not in id:
-                    print('This is service')
-                    print(id)
+#                     print('This is service')
+#                     print(id)
                     self.load_processes(id)
                 else:
-                    print('This is process')
-                    print(id)
+#                     print('This is process')
+#                     print(id)
                     self.pushButtonExecute.setEnabled(True)
                     self.process_selected(id)
 
@@ -185,14 +185,14 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.setCursor(Qt.WaitCursor)
 #             self.textEditLog.append(self.tr("Loading processes ..."))
             self.loadProcesses = GetProcesses()
-            print(url)
+#             print(url)
             self.loadProcesses.setUrl(url)
             self.loadProcesses.statusChanged.connect(self.on_load_processes_response)
             self.loadProcesses.start()
 
     def on_load_processes_response(self, response):
-        print(response.status)
-        print(response.data)
+#         print(response.status)
+#         print(response.data)
         if response.status == 200:
             self.processes = response.data
             service = self.get_selected_item()

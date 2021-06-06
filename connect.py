@@ -35,7 +35,7 @@ class GetProcesses(QThread):
             responseToReturn.status = 200
             responseToReturn.data = wps.processes
         except Exception as e:
-            print(e)
+#             print(e)
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
 

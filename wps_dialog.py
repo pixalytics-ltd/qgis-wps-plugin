@@ -47,7 +47,7 @@ from owslib.wps import ComplexDataInput
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wps_dialog_base.ui'))
 
-DATE_TIME_KEYWORDS = ['date', 'datum', 'type']
+DATE_TIME_KEYWORDS = ['date', 'datum']
 
 class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, iface, parent=None):
@@ -272,7 +272,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess = ExecuteProcess()
         self.executeProcess.setUrl(self.service_url)
         self.executeProcess.setIdentifier(self.process_identifier)
-        print(myinputs)
+#         print(myinputs)
         self.executeProcess.setInputs(myinputs)
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
