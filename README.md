@@ -7,7 +7,7 @@ library.
 ## Acknowledgement
 
 Developed by
-[OpenGeoLabs](https://geomatics.fsv.cvut.cz/research/geoforall/) and
+[OpenGeoLabs](https://opengeolabs.cz/en/home/) and
 [CTU GeoForAll
 Lab](https://geomatics.fsv.cvut.cz/research/geoforall/).
 
