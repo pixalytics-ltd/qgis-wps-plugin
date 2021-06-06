@@ -1,8 +1,8 @@
 # QGIS WPS Plugin
 
-QGIS client for [OGC Web Processing
-Service](https://www.ogc.org/standards/wps) (WPS) based on
-[OWSLib](https://geopython.github.io/OWSLib/).
+QGIS [OGC Web Processing Service](https://www.ogc.org/standards/wps)
+(WPS) client based on [OWSLib](https://geopython.github.io/OWSLib/)
+library.
 
 ## Acknowledgement
 
