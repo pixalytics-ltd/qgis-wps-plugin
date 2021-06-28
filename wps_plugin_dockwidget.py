@@ -72,6 +72,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.root = QTreeWidgetItem(tree)
         self.root.setText(0, 'WPS Services')
         self.loadServices(self.root)
+        self.treeWidgetServices.expandItem(self.root)
         self.treeWidgetServices.customContextMenuRequested.connect(self.menuContextTree)
 
     def appendServiceToTree(self, parent, service_url):
@@ -84,8 +85,6 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.services = json.load(f)
         for service_url in self.services:
             self.appendServiceToTree(parent, service_url)
-#         process = QTreeWidgetItem(service)
-#         process.setText(0, 'Process 1')
 
     def menuContextTree(self, point):
         # Infos about the node selected.
