@@ -222,13 +222,13 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if response.data.abstract is not None:
                 self.set_input_items(response.data)
                 self.set_output_items(response.data)
-                self.textEditLog.append(self.tr("Process {} loaded".format(self.process_identifier)))
+                self.appendLogMessage(self.tr("Process {} loaded".format(self.process_identifier)))
             else:
-                self.textEditLog.append(self.tr("Error loading process {}".format(self.process_identifier)))
+                self.appendLogMessage(self.tr("Error loading process {}".format(self.process_identifier)))
         else:
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error loading process {}".format(self.process_identifier)))
-            self.textEditLog.append(self.tr("Error loading process {}".format(self.process_identifier)))
+            self.appendLogMessage(self.tr("Error loading process {}".format(self.process_identifier)))
         self.setCursor(Qt.ArrowCursor)
 
     def execute_process(self):
@@ -268,7 +268,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 # TODO check also other types than just QLineEdit
                 if widget.text() != 'None':
                     myinputs.append((param, widget.text()))
-        self.textEditLog.append(self.tr("Executing {} process ...".format(self.process_identifier)))
+        self.appendLogMessage(self.tr("Executing {} process ...".format(self.process_identifier)))
         self.executeProcess = ExecuteProcess()
         self.executeProcess.setUrl(self.service_url)
         self.executeProcess.setIdentifier(self.process_identifier)
@@ -315,7 +315,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             None, self.tr("INFO:"),
             self.tr("Process sucesfully finished. The output can not be loaded into map. "
                     "Printing output into log."))
-        self.textEditLog.append(self.tr("Showing content of the output"))
+        self.appendLogMessage(self.tr("Showing content of the output"))
         self.appendFileContentIntoLog(item)
 
     def process_output(self, response):
@@ -323,10 +323,10 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.handleOutputComboBox is not None and self.handleOutputComboBox.currentIndex() == 1:
             result = self.postprocess_output(process_identifier, self.input_items, response)
             if result is not None:
-                self.textEditLog.append(self.tr("Postprocessing successfully finished"))
+                self.appendLogMessage(self.tr("Postprocessing successfully finished"))
             else:
                 QMessageBox.information(None, self.tr("INFO:"), self.tr("Postprocessing ended with error."))
-                self.textEditLog.append(self.tr("ERROR: Postprocessing ended with error."))
+                self.appendLogMessage(self.tr("ERROR: Postprocessing ended with error."))
         else:
             for identifier, item in response.output.items():
                 layer = None
@@ -348,31 +348,35 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     )
                 if layer is not None and layer.isValid():
                     QgsProject.instance().addMapLayer(layer)
-                    self.textEditLog.append(self.tr("Output data loaded into the map"))
+                    self.appendLogMessage(self.tr("Output data loaded into the map"))
                 else:
                     self.process_not_known_output(item)
 
     def on_execute_process_response(self, response):
         process_identifier = self.process_identifier
         if response.status == 200:
-            self.textEditLog.append(self.tr("Process {} successfully finished".format(process_identifier)))
+            self.appendLogMessage(self.tr("Process {} successfully finished".format(process_identifier)))
             self.process_output(response)
             self.setCursor(Qt.ArrowCursor)
         if response.status == 201:
-            self.textEditLog.append(self.tr("Process '{}': {}% {}".format(
+            self.appendLogMessage(self.tr("Process '{}': {}% {}".format(
                 process_identifier, response.data['percent'], response.data['message'], 
             )))
             self.progressBar.setValue(int(response.data['percent']))
         if response.status == 500:
-            self.textEditLog.append(self.tr("Process {} failed".format(process_identifier)))
+            self.appendLogMessage(self.tr("Process {} failed".format(process_identifier)))
             self.process_output(response)
             self.setCursor(Qt.ArrowCursor)
             QMessageBox.information(None, self.tr("ERROR:"),
                                     self.tr("Error executing process {}".format(process_identifier)))
-            self.textEditLog.append(self.tr("Error executing process {}".format(process_identifier)))
-            self.textEditLog.append(response.data)
+            self.appendLogMessage(self.tr("Error executing process {}".format(process_identifier)))
+            self.appendLogMessage(response.data)
 
     def appendFileContentIntoLog(self, item):
         # with (open(item.filepath, "r")) as f:
-        #     self.textEditLog.append(str(f.read()))
-        self.textEditLog.append("File: {} (minetype: {})".format(item.filepath, item.minetype))
+        #     self.appendLogMessage(str(f.read()))
+        self.appendLogMessage("File: {} (minetype: {})".format(item.filepath, item.minetype))
+
+    def appendLogMessage(self, msg):
+        self.textEditLog.append(msg)
+        self.textEditLog.moveCursor(QtGui.QTextCursor.End)
