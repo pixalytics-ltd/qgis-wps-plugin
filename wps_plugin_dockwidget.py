@@ -68,6 +68,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.first_start = True
         tree = self.treeWidgetServices
         tree.itemSelectionChanged.connect(self.handleSelected)
+        tree.itemDoubleClicked.connect(self.handleDoubleClicked)
         self.pushButtonExecute.clicked.connect(self.execute_process)
         self.root = QTreeWidgetItem(tree)
         self.root.setText(0, 'WPS Services')
@@ -160,6 +161,12 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.dlg.load_process()
         # show the dialog
         self.dlg.show()
+
+    def handleDoubleClicked(self, item, column):
+        if item.data(0, Qt.UserRole) is not None:
+            id = item.data(0, Qt.UserRole)
+            if '|' in id:
+                self.execute_process()
 
     def handleSelected(self):
         self.pushButtonExecute.setEnabled(False)
