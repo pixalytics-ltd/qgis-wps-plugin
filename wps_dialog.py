@@ -64,6 +64,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.input_items_all = []
         self.output_items_all = []
         self.processes = []
+        self.only_selected = {}
 
     def show_process_description(self, index):
         self.textEditProcessDescription.setText("[" + self.processes[index].identifier + "]: " + self.processes[index].abstract)
@@ -101,6 +102,16 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if item in identifier or "date" in title:
                 return True
         return False
+
+    def get_only_selected_input(self, identifier):
+        input_item = QCheckBox(self.tabInputs)
+        input_item.setText("Only selected features")
+        input_item.setChecked(True)
+        self.only_selected[str(identifier)] = input_item
+        self.input_items_all.append(input_item)
+        hbox_layout = QHBoxLayout(self.tabInputs)
+        hbox_layout.addWidget(input_item)
+        return hbox_layout
 
     def get_input(self, identifier, title, data_type, default_value, min_occurs):
         # TODO check types
@@ -172,6 +183,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         for x in data.dataInputs:
             input_item = self.get_input(x.identifier, x.title, x.dataType, x.defaultValue, x.minOccurs)
             self.verticalLayoutInputs.addLayout(input_item)
+            if x.dataType == 'ComplexData':
+                only_selected_item = self.get_only_selected_input(x.identifier)
+                self.verticalLayoutInputs.addLayout(only_selected_item)
         self.tabInputs.setLayout(self.verticalLayoutInputs)
         self.set_layer_to_qgs_field_combo_box()
         self.set_map_layer_cmb_box_connect()
@@ -251,11 +265,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
                 tmp_file = QgsProcessingUtils.generateTempFilename(
                     self.process_identifier + '_' + param) + tmp_ext
+                only_selected = False
+                if param in self.only_selected:
+                    only_selected = self.only_selected[param].isChecked()
                 QgsVectorFileWriter.writeAsVectorFormat(
                     layer,
                     tmp_file,
                     fileEncoding="UTF-8",
-                    driverName=tmp_frmt
+                    driverName=tmp_frmt,
+                    onlySelected=only_selected
                 )
                 with open(tmp_file) as fd:
                     cdi = ComplexDataInput(fd.read())
