@@ -5,9 +5,9 @@ from owslib.wps import WebProcessingService
 from owslib.wps import ComplexDataInput
 
 class ResponseOutput:
-    def __init__(self, filepath, minetype):
+    def __init__(self, filepath, mimetype):
         self.filepath = filepath
-        self.minetype = minetype
+        self.mimetype = mimetype
 
 class Response():
     status = 200

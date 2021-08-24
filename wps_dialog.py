@@ -339,6 +339,30 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.appendLogMessage(self.tr("Showing content of the output"))
         self.appendFileContentIntoLog(item)
 
+    def get_csv_layer(self, file_path, layer_name):
+        return QgsVectorLayer(
+            'file:///' + file_path + '?delimiter=,',
+            layer_name, 'delimitedtext'
+        )
+
+    def get_zipped_vector_layer(self, file_path, layer_name):
+        return QgsVectorLayer(
+            '/vsizip/' + file_path,
+            layer_name,
+            "ogr")
+
+    def get_vector_layer(self, file_path, layer_name):
+        return QgsVectorLayer(
+            file_path,
+            layer_name,
+            "ogr")
+
+    def get_raster_layer(self, file_path, layer_name):
+        return QgsRasterLayer(
+            file_path,
+            layer_name
+        )
+
     def process_output(self, response):
         process_identifier = self.process_identifier
         if self.handleOutputComboBox is not None and self.handleOutputComboBox.currentIndex() == 1:
@@ -352,21 +376,14 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             for identifier, item in response.output.items():
                 layer = None
                 layer_name = "{} {}".format(process_identifier, identifier)
-                if item.minetype == 'application/csv':
-                    layer = QgsVectorLayer(
-                        'file:///' + item.filepath + '?delimiter=,',
-                        layer_name, 'delimitedtext'
-                    )
-                elif item.minetype == 'application/x-zipped-shp':
-                    layer = QgsVectorLayer(
-                        '/vsizip/' + item.filepath,
-                        "layer_name",
-                        "ogr")
-                elif item.minetype == 'image/tiff; subtype=geotiff':
-                    layer = QgsRasterLayer(
-                        item.filepath,
-                        "layer_name"
-                    )
+                if layer is None or not layer.isValid():
+                    layer = self.get_zipped_vector_layer(item.filepath, layer_name)
+                if layer is None or not layer.isValid():
+                    layer = self.get_vector_layer(item.filepath, layer_name)
+                if layer is None or not layer.isValid():
+                    layer = self.get_raster_layer(item.filepath, layer_name)
+                if (layer is None or not layer.isValid()) and item.mimetype == 'application/csv':
+                    layer = self.get_csv_layer(item.filepath, layer_name)
                 if layer is not None and layer.isValid():
                     QgsProject.instance().addMapLayer(layer)
                     self.appendLogMessage(self.tr("Output data loaded into the map"))
@@ -396,7 +413,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def appendFileContentIntoLog(self, item):
         # with (open(item.filepath, "r")) as f:
         #     self.appendLogMessage(str(f.read()))
-        self.appendLogMessage("File: {} (minetype: {})".format(item.filepath, item.minetype))
+        self.appendLogMessage("File: {} (mimetype: {})".format(item.filepath, item.mimetype))
 
     def appendLogMessage(self, msg):
         self.textEditLog.append(msg)
