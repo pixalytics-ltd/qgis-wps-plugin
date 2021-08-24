@@ -165,6 +165,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def load_process(self):
         if self.process_identifier is not None and self.service_url is not None:
             self.setCursor(Qt.WaitCursor)
+            self.item_remove(self.input_items_all)
             self.textEditLog.setText(self.tr("Loading process {}...".format(self.process_identifier)))
             self.loadProcess = GetProcess()
             self.loadProcess.setUrl(self.service_url)
@@ -177,7 +178,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             item_to_remove.setParent(None)
 
     def set_input_items(self, data):
-        self.item_remove(self.input_items_all)
         self.input_items = {}
         self.pushButtonExecute.setEnabled(True)
         for x in data.dataInputs:
