@@ -213,7 +213,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(label)
         self.handleOutputComboBox = QComboBox()
         self.handleOutputComboBox.addItem(self.tr("Load into map"))
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', self.process_identifier + ".py")
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', self.get_stripped_url(), self.process_identifier + ".py")
         if os.path.exists(path):
             self.handleOutputComboBox.addItem(self.tr("Postprocess"))
             self.handleOutputComboBox.setCurrentIndex(1)
@@ -316,10 +316,13 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             parameters = { 'DISCARD_NONMATCHING' : False, 'FIELD' : layerField, 'FIELDS_TO_COPY' : [], 'FIELD_2' : csvField, 'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1, 'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
             result = processing.runAndLoadResults('qgis:joinattributestable', parameters)
 
+    def get_stripped_url(self):
+        return self.service_url.split('//')[1].replace('.', '_').replace('/', '_')
+
     def postprocess_output(self, process_identifier, inputs, response):
         current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         current_module_name = os.path.splitext(os.path.basename(current_dir))[0]
-        module = importlib.import_module(".postprocessing." + process_identifier, package=current_module_name)
+        module = importlib.import_module(".postprocessing." + self.get_stripped_url() + "." + process_identifier, package=current_module_name)
         for member in dir(module):
             if member == 'wps_postprocessing':
                 handler_class = getattr(module, member)
