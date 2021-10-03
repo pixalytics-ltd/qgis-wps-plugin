@@ -104,6 +104,8 @@ class ExecuteProcess(QThread):
                 wps = WebProcessingService(self.url)
                 execution = wps.execute(self.identifier, self.inputs, output=[])
                 self.monitorExecution(execution)
+                if len(execution.errors) > 0:
+                    raise Exception(execution.errors[0].text)
                 for output in execution.processOutputs:
                     filePath = self.getFilePath(output.mimeType)
                     responseToReturn.output[output.identifier] = ResponseOutput(
@@ -133,6 +135,7 @@ class ExecuteProcess(QThread):
                 "message": execution.statusMessage,
                 "percent": execution.percentCompleted
             }
+
             self.statusChanged.emit(responseToReturn)
 
         # if execution.isSucceded():
