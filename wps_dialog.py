@@ -106,7 +106,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
     def get_only_selected_input(self, identifier):
         input_item = QCheckBox(self.tabInputs)
         input_item.setText("Only selected features")
-        input_item.setChecked(True)
+        input_item.setChecked(False)
         self.only_selected[str(identifier)] = input_item
         self.input_items_all.append(input_item)
         hbox_layout = QHBoxLayout(self.tabInputs)
