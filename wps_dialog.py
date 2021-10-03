@@ -255,12 +255,14 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 layer = widget.currentLayer()
                 if layer is None:
                     iface.messageBar().pushMessage(self.tr("Error"), self.tr("There is not any layer"), level=Qgis.Critical)
+                    self.reset_on_error()
                     return
                 if layer.type() == QgsMapLayer.VectorLayer:
                     tmp_ext = '.gml'
                     tmp_frmt = 'GML'
                 else:
                     iface.messageBar().pushMessage("Error", "Unsupported map layer type", level=Qgis.Critical)
+                    self.reset_on_error()
                     return
 
                 tmp_file = QgsProcessingUtils.generateTempFilename(
@@ -268,6 +270,15 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 only_selected = False
                 if param in self.only_selected:
                     only_selected = self.only_selected[param].isChecked()
+                    # check number of selected features
+                    if only_selected and layer.selectedFeatureCount() < 1:
+                        iface.messageBar().pushMessage(
+                            self.tr("Warning"),
+                            self.tr("No features selected"), level=Qgis.Warning
+                        )
+                        self.reset_on_error()
+                        return
+
                 QgsVectorFileWriter.writeAsVectorFormat(
                     layer,
                     tmp_file,
@@ -290,7 +301,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.executeProcess = ExecuteProcess()
         self.executeProcess.setUrl(self.service_url)
         self.executeProcess.setIdentifier(self.process_identifier)
-#         print(myinputs)
         self.executeProcess.setInputs(myinputs)
         self.executeProcess.statusChanged.connect(self.on_execute_process_response)
         self.executeProcess.start()
@@ -389,6 +399,10 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     self.appendLogMessage(self.tr("Output data loaded into the map"))
                 else:
                     self.process_not_known_output(item)
+
+    def reset_on_error(self):
+        self.setCursor(Qt.ArrowCursor)
+        self.progressBar.setValue(0)
 
     def on_execute_process_response(self, response):
         process_identifier = self.process_identifier
