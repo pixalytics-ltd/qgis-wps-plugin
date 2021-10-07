@@ -24,7 +24,6 @@
 """
 
 import os
-import webbrowser
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
@@ -36,11 +35,9 @@ from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
 from qgis.gui import *
 
-import importlib, inspect
+import importlib
 
 from .connect import *
-from .check_ows_lib import CheckOwsLib
-from owslib.wps import WebProcessingService
 from owslib.wps import ComplexDataInput
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
@@ -67,7 +64,10 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.only_selected = {}
 
     def show_process_description(self, index):
-        self.textEditProcessDescription.setText("[" + self.processes[index].identifier + "]: " + self.processes[index].abstract)
+        self.textEditProcessDescription.setText(
+            "[" + self.processes[index].identifier + "]: " +
+            self.processes[index].abstract
+        )
 
     def process_selected(self):
         current_index = self.comboBoxProcesses.currentIndex()
@@ -129,7 +129,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     input_item.setText('')
                 else:
                     input_item.setText(str(default_value))
-        hbox_layout, label, label_id = self.get_input_item_container(identifier, input_item, min_occurs, title)
+        hbox_layout, label, label_id = self.get_input_item_container(
+            identifier, input_item, min_occurs, title
+        )
         # TODO check if there is not a better way
         self.input_items[str(identifier)] = input_item
         self.input_items_all.append(input_item)
@@ -254,7 +256,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 # TODO check input type and export into it (GML, GeoPackage, etc.)
                 layer = widget.currentLayer()
                 if layer is None:
-                    iface.messageBar().pushMessage(self.tr("Error"), self.tr("There is not any layer"), level=Qgis.Critical)
+                    iface.messageBar().pushMessage(
+                        self.tr("Error"), self.tr("There is not any layer"), level=Qgis.Critical
+                    )
                     self.reset_on_error()
                     return
                 if layer.type() == QgsMapLayer.VectorLayer:
