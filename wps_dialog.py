@@ -168,6 +168,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.process_identifier is not None and self.service_url is not None:
             self.setCursor(Qt.WaitCursor)
             self.item_remove(self.input_items_all)
+            self.progressBar.setValue(0)
             self.textEditLog.setText(self.tr("Loading process {}...".format(self.process_identifier)))
             self.loadProcess = GetProcess()
             self.loadProcess.setUrl(self.service_url)
