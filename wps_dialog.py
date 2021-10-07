@@ -421,12 +421,14 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.progressBar.setValue(int(response.data['percent']))
         if response.status == 500:
             self.appendLogMessage(self.tr("Process {} failed".format(process_identifier)))
-            self.process_output(response)
             self.setCursor(Qt.ArrowCursor)
-            QMessageBox.information(None, self.tr("ERROR:"),
-                                    self.tr("Error executing process {}".format(process_identifier)))
+            # QMessageBox.information(None, self.tr("ERROR:"),
+            #                         self.tr("Error executing process {}".format(process_identifier)))
             self.appendLogMessage(self.tr("Error executing process {}".format(process_identifier)))
             self.appendLogMessage(response.data)
+            self.iface.messageBar().pushMessage(
+                self.tr("Error in {}").format(process_identifier), response.data, level=Qgis.Critical
+            )
 
     def appendFileContentIntoLog(self, item):
         # with (open(item.filepath, "r")) as f:
