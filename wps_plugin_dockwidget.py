@@ -69,7 +69,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         tree = self.treeWidgetServices
         tree.itemSelectionChanged.connect(self.handleSelected)
         tree.itemDoubleClicked.connect(self.handleDoubleClicked)
-        self.pushButtonExecute.clicked.connect(self.execute_process)
+        self.pushButtonLoad.clicked.connect(self.execute_process)
         self.root = QTreeWidgetItem(tree)
         self.root.setText(0, 'WPS Services')
         self.loadServices(self.root)
@@ -169,7 +169,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.execute_process()
 
     def handleSelected(self):
-        self.pushButtonExecute.setEnabled(False)
+        self.pushButtonLoad.setEnabled(False)
         for item in self.treeWidgetServices.selectedItems():
             if item.data(0, Qt.UserRole) is not None:
                 id = item.data(0, Qt.UserRole)
@@ -180,7 +180,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 else:
 #                     print('This is process')
 #                     print(id)
-                    self.pushButtonExecute.setEnabled(True)
+                    self.pushButtonLoad.setEnabled(True)
                     self.process_selected(id)
 
     def get_selected_item(self):

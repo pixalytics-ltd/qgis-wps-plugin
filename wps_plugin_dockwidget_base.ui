@@ -42,12 +42,12 @@
        <widget class="QTextEdit" name="textEditProcessDescription"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButtonExecute">
+       <widget class="QPushButton" name="pushButtonLoad">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Execute</string>
+         <string>Load Process</string>
         </property>
        </widget>
       </item>
