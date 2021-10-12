@@ -1,6 +1,7 @@
 from qgis.PyQt.QtCore import QThread, pyqtSignal
 import tempfile, os
 from .check_ows_lib import CheckOwsLib
+import owslib.wps
 from owslib.wps import WebProcessingService
 from owslib.wps import ComplexDataInput
 
@@ -98,6 +99,12 @@ class ExecuteProcess(QThread):
         return os.path.join(defult_tmp_dir, temp_name + "." + suffix)
 
     def run(self):
+        """
+        * Call the `Execute` request on WPS service with all intpus
+        * Wait for result
+        * After executed, download all outputs and show the progress
+        * Handle Execeptions
+        """
         responseToReturn = Response()
         if self.identifier != "" and len(self.inputs) > 0:
             try:
@@ -111,7 +118,8 @@ class ExecuteProcess(QThread):
                     responseToReturn.output[output.identifier] = ResponseOutput(
                         filePath, output.mimeType
                     )
-                    execution.getOutput(filePath, output.identifier)
+                    data_output = execution.getOutput(filePath, output.identifier)
+                    self.__download_data(data_output)
                 responseToReturn.status = 200
             except Exception as e:
                 responseToReturn.status = 500
@@ -120,10 +128,29 @@ class ExecuteProcess(QThread):
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
 
+    def __download_data(self, data_output=None):
+        """
+        Read download progress from the execution.getOutput method. Result is
+        number from 0 to 1 - so basically % of downloaded file
+
+        Show progress in status message
+        """
+        if data_output is not None:
+            for i in data_output:
+                #print("download progress: ", i)
+                responseToReturn = Response()
+                responseToReturn.status = 201
+                responseToReturn.data = {
+                    "message": "Downloading ouput {}".format(output.identifier),
+                    "status":  "Download",
+                    "percent": int(i*100)
+                }
+                self.statusChanged.emit(responseToReturn)
+
 
     def monitorExecution(self, execution, sleepSecs=3, download=False, filepath=None):
         '''
-        used from owslib/owslib/wps.py
+        Custom implementation of monitorExecution from owslib/owslib/wps.py
         '''
         responseToReturn = Response()
         while execution.isComplete() is False:
