@@ -1,18 +1,20 @@
 from qgis.PyQt.QtCore import QThread, pyqtSignal
-import tempfile, os
-from .check_ows_lib import CheckOwsLib
+import tempfile
+import os
 from owslib.wps import WebProcessingService
-from owslib.wps import ComplexDataInput
+
 
 class ResponseOutput:
     def __init__(self, filepath, mimetype):
         self.filepath = filepath
         self.mimetype = mimetype
 
+
 class Response():
     status = 200
-    data = []
+    data = ""
     output = {}
+
 
 # TODO create superclass for these classes
 class GetProcesses(QThread):
@@ -31,13 +33,13 @@ class GetProcesses(QThread):
         try:
             wps = WebProcessingService(self.url)
             wps.getcapabilities()
-            # processes = [x.identifier for x in wps.processes]
             responseToReturn.status = 200
             responseToReturn.data = wps.processes
         except Exception as e:
-#             print(e)
+            responseToReturn.data = {"message": str(e)}
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
+
 
 class GetProcess(QThread):
     statusChanged = pyqtSignal(object)
@@ -62,11 +64,12 @@ class GetProcess(QThread):
                 process = wps.describeprocess(self.identifier)
                 responseToReturn.status = 200
                 responseToReturn.data = process
-            except:
+            except Exception as e:
                 responseToReturn.status = 500
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
+
 
 class ExecuteProcess(QThread):
     statusChanged = pyqtSignal(object)
@@ -98,32 +101,61 @@ class ExecuteProcess(QThread):
         return os.path.join(defult_tmp_dir, temp_name + "." + suffix)
 
     def run(self):
+        """
+        * Call the `Execute` request on WPS service with all intpus
+        * Wait for result
+        * After executed, download all outputs and show the progress
+        * Handle Execeptions
+        """
         responseToReturn = Response()
         if self.identifier != "" and len(self.inputs) > 0:
             try:
                 wps = WebProcessingService(self.url)
-                execution = wps.execute(self.identifier, self.inputs, output=[])
+                execution = wps.execute(
+                        self.identifier, self.inputs, output=[]
+                )
                 self.monitorExecution(execution)
                 if len(execution.errors) > 0:
                     raise Exception(execution.errors[0].text)
                 for output in execution.processOutputs:
                     filePath = self.getFilePath(output.mimeType)
-                    responseToReturn.output[output.identifier] = ResponseOutput(
-                        filePath, output.mimeType
+                    responseToReturn.output[output.identifier] = \
+                        ResponseOutput(filePath, output.mimeType)
+                    data_output = execution.getOutput(
+                            filePath, output.identifier
                     )
-                    execution.getOutput(filePath, output.identifier)
+                    self.__download_data(output, data_output)
                 responseToReturn.status = 200
             except Exception as e:
                 responseToReturn.status = 500
-                responseToReturn.data = str(e)
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
 
+    def __download_data(self, output, data_output=None):
+        """
+        Read download progress from the execution.getOutput method. Result is
+        number from 0 to 1 - so basically % of downloaded file
 
-    def monitorExecution(self, execution, sleepSecs=3, download=False, filepath=None):
+        Show progress in status message
+        """
+        if data_output is not None:
+            for i in data_output:
+                responseToReturn = Response()
+                responseToReturn.status = 201
+                responseToReturn.data = {
+                    "message": "Downloading ouput {}".format(
+                        output.identifier
+                    ),
+                    "status":  "Download",
+                    "percent": int(i*100)
+                }
+                self.statusChanged.emit(responseToReturn)
+
+    def monitorExecution(
+            self, execution, sleepSecs=3, download=False, filepath=None):
         '''
-        used from owslib/owslib/wps.py
+        Custom implementation of monitorExecution from owslib/owslib/wps.py
         '''
         responseToReturn = Response()
         while execution.isComplete() is False:
