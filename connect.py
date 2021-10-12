@@ -12,7 +12,7 @@ class ResponseOutput:
 
 class Response():
     status = 200
-    data = []
+    data = ""
     output = {}
 
 
@@ -36,7 +36,7 @@ class GetProcesses(QThread):
             responseToReturn.status = 200
             responseToReturn.data = wps.processes
         except Exception as e:
-            responseToReturn.data = str(e)
+            responseToReturn.data = {"message": str(e)}
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
 
@@ -66,7 +66,6 @@ class GetProcess(QThread):
                 responseToReturn.data = process
             except Exception as e:
                 responseToReturn.status = 500
-                responseToReturn.data = {'message': str(e)}
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
@@ -129,7 +128,6 @@ class ExecuteProcess(QThread):
                 responseToReturn.status = 200
             except Exception as e:
                 responseToReturn.status = 500
-                responseToReturn.data = {'message': str(e)}
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
