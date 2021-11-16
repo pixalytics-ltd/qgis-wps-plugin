@@ -113,7 +113,26 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(input_item)
         return hbox_layout
 
-    def get_input(self, identifier, title, data_type, default_value, min_occurs):
+    def _get_allowed_values_input(self, values, min_occurs, max_occurs):
+        """Create select dialogue maybe with checkboxes for multiple values
+        """
+        input_item = QgsCheckableComboBox()
+        input_item.insertItems(0,values)
+        max_occurs = max_occurs
+
+        def items_checked(checked):
+            """Make sure, there is only max_occurs checked items
+            """
+
+            if max_occurs and len(checked) > max_occurs:
+                input_item.deselectAllOptions()
+                input_item.setCheckedItems(checked[:-1])
+
+        input_item.checkedItemsChanged.connect(items_checked)
+        return input_item
+
+    def get_input(self, identifier, title, data_type, default_value,
+            min_occurs, max_occurs, allowed_values):
         # TODO check types
         input_item = None
         if data_type == 'ComplexData':
@@ -124,6 +143,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 input_item = self.get_layer_fields()
             elif self.isDateInput(identifier, title):
                 input_item = QgsDateTimeEdit(self.tabInputs)
+            elif allowed_values:
+                input_item = self._get_allowed_values_input(allowed_values,
+                        min_occurs, max_occurs)
             else:
                 if str(default_value) == 'None':
                     input_item.setText('')
@@ -184,7 +206,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.input_items = {}
         self.pushButtonExecute.setEnabled(True)
         for x in data.dataInputs:
-            input_item = self.get_input(x.identifier, x.title, x.dataType, x.defaultValue, x.minOccurs)
+
+            input_item = self.get_input(
+                    x.identifier, x.title, x.dataType, x.defaultValue,
+                    x.maxOccurs, x.minOccurs, x.allowedValues
+            )
+
             self.verticalLayoutInputs.addLayout(input_item)
             if x.dataType == 'ComplexData':
                 only_selected_item = self.get_only_selected_input(x.identifier)
@@ -298,6 +325,9 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 myinputs.append((param, widget.currentField()))
             elif isinstance(widget, QgsDateTimeEdit):
                 myinputs.append((param, widget.date().toString('yyyy-MM-dd')))
+            elif isinstance(widget, QgsCheckableComboBox):
+                for val in widget.checkedItems():
+                    myinputs.append((param, val))
             else:
                 # TODO check also other types than just QLineEdit
                 if widget.text() != 'None':
