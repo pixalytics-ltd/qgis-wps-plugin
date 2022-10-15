@@ -113,12 +113,18 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(input_item)
         return hbox_layout
 
-    def _get_allowed_values_input(self, values, min_occurs, max_occurs):
+    def _get_allowed_values_input(self, values, min_occurs, max_occurs, default_value):
         """Create select dialogue maybe with checkboxes for multiple values
         """
         input_item = QgsCheckableComboBox()
-        input_item.insertItems(0,values)
-        max_occurs = max_occurs
+        input_item.insertItems(0, values)
+        if default_value:
+            try:
+                input_item.setCheckedItems(default_value.split(','))
+            except Exception as e:
+                self.appendLogMessage(
+                    self.tr("ERROR: Unable to set default value {}".format(default_value)
+                ))
 
         def items_checked(checked):
             """Make sure, there is only max_occurs checked items
@@ -145,7 +151,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 input_item = QgsDateTimeEdit(self.tabInputs)
             elif allowed_values:
                 input_item = self._get_allowed_values_input(allowed_values,
-                        min_occurs, max_occurs)
+                                                            min_occurs, max_occurs, default_value)
             else:
                 if str(default_value) == 'None':
                     input_item.setText('')
