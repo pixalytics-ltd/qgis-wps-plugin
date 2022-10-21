@@ -24,12 +24,7 @@
 
 import os
 
-from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal
-
-from qgis.PyQt import uic
-from qgis.PyQt import QtWidgets
-from qgis.PyQt import QtGui
+from qgis.PyQt import uic, QtWidgets
 from qgis.utils import iface
 from qgis.core import *
 from qgis.gui import *
@@ -66,6 +61,9 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.iface = iface
         self.setupUi(self)
         self.first_start = True
+
+        self.settings = QSettings('QGIS_WPS_Plugin')
+
         tree = self.treeWidgetServices
         tree.itemSelectionChanged.connect(self.handleSelected)
         tree.itemDoubleClicked.connect(self.handleDoubleClicked)
@@ -76,7 +74,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.treeWidgetServices.expandItem(self.root)
         self.treeWidgetServices.customContextMenuRequested.connect(self.menuContextTree)
         self.root.setExpanded(True)
-
+        
     def appendServiceToTree(self, parent, service_url):
         service = QTreeWidgetItem(parent)
         service.setText(0, service_url)
@@ -84,8 +82,9 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         service.setExpanded(True)
 
     def loadServices(self, parent):
-        with open(os.path.join(os.path.dirname(__file__), 'services/list.json')) as f:
-            self.services = json.load(f)
+        self.services = self.settings.value("services", [])
+        if self.services is None:
+            self.services = []
         for service_url in self.services:
             self.appendServiceToTree(parent, service_url)
 
@@ -118,12 +117,16 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         menu.exec_(self.treeWidgetServices.mapToGlobal(point))
 
     def saveServices(self):
-        with open(os.path.join(os.path.dirname(__file__), 'services/list.json'), 'w') as f:
-            json.dump(self.services, f)
+        self.settings.setValue("services", self.services)
 
     def new_service(self):
-        text, ok = QInputDialog.getText(self, self.tr('New Service'), self.tr('Enter url of the service'))
-        if ok:
+        dlg = QInputDialog(self)
+        dlg.setWindowTitle(self.tr('New Service'))
+        dlg.setInputMode(QInputDialog.TextInput)
+        dlg.setLabelText(self.tr('Enter URL of the service'))
+        dlg.resize(500, 100)
+        if dlg.exec_():
+            text = dlg.textValue()
             if text in self.services:
                 QMessageBox.information(
                             None, self.tr("INFO:"),
