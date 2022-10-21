@@ -4,6 +4,10 @@ QGIS [OGC Web Processing Service](https://www.ogc.org/standards/wps)
 (WPS) client based on [OWSLib](https://geopython.github.io/OWSLib/)
 library.
 
+## Documentation
+
+https://opengeolabs.github.io/qgis-wps-plugin/
+
 ## Acknowledgement
 
 Developed by
