@@ -94,6 +94,8 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 field_cmb_box = widget
             if isinstance(widget, QgsMapLayerComboBox):
                 layer = widget.currentLayer()
+            if layer is not None:
+                layer.selectionChanged.connect(self.on_layer_selection)
         if layer is not None and field_cmb_box is not None:
             field_cmb_box.setLayer(layer)
 
@@ -103,10 +105,26 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 return True
         return False
 
+    def on_layer_selection(self, selected_features):
+        for param, widget in self.input_items.items():
+            if isinstance(widget, QgsMapLayerComboBox):
+                layer = widget.currentLayer()
+                selection_widget = self.only_selected[param]
+                if layer == self.sender():
+                    selection_widget.setChecked(len(selected_features) > 0)
+                    selection_widget.setEnabled(len(selected_features) > 0)
+
     def get_only_selected_input(self, identifier):
         input_item = QCheckBox(self.tabInputs)
-        input_item.setText("Only selected features")
-        input_item.setChecked(False)
+        input_item.setText(self.tr("Only selected features"))
+        for param, widget in self.input_items.items():
+            if isinstance(widget, QgsMapLayerComboBox):
+                if param == identifier:
+                    layer = widget.currentLayer()
+                    selected = layer is not None and layer.selectedFeatureCount() > 0
+                    input_item.setChecked(selected)
+                    input_item.setEnabled(selected)
+                    break
         self.only_selected[str(identifier)] = input_item
         self.input_items_all.append(input_item)
         hbox_layout = QHBoxLayout(self.tabInputs)
