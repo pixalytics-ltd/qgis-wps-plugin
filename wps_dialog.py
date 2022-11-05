@@ -454,7 +454,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     layer = self.getVectorLayer(item.filepath, layer_name)
                 if layer is None or not layer.isValid():
                     layer = self.getRasterLayer(item.filepath, layer_name)
-                if (layer is None or not layer.isValid()) and item.mimetype == 'application/csv':
+                if (layer is None or not layer.isValid()) and item.mimetype in ('application/csv', 'text/csv'):
                     layer = self.getCsvLayer(item.filepath, layer_name)
                 if layer is not None and layer.isValid():
                     QgsProject.instance().addMapLayer(layer)
@@ -488,8 +488,6 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             )
 
     def appendFileContentIntoLog(self, item):
-        # with (open(item.filepath, "r")) as f:
-        #     self.appendLogMessage(str(f.read()))
         self.appendLogMessage("File: {} (mimetype: {})".format(item.filepath, item.mimetype))
 
     def appendLogMessage(self, msg):
