@@ -128,6 +128,7 @@ class ExecuteProcess(QThread):
                 responseToReturn.status = 200
             except Exception as e:
                 responseToReturn.status = 500
+                responseToReturn.data = str(e)
         else:
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
@@ -169,15 +170,3 @@ class ExecuteProcess(QThread):
             }
 
             self.statusChanged.emit(responseToReturn)
-
-        # if execution.isSucceded():
-        #     if download:
-        #         execution.getOutput(filepath=filepath)
-        #     else:
-        #         for output in execution.processOutputs:
-        #             if output.reference is not None:
-        #                 print('Output URL=%s' % output.reference)
-        # else:
-        #     for ex in execution.errors:
-        #         print('Error: code=%s, locator=%s, text=%s' %
-        #                 (ex.code, ex.locator, ex.text))

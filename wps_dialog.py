@@ -480,12 +480,11 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         if response.status == 500:
             self.appendLogMessage(self.tr("Process {} failed".format(process_identifier)))
             self.setCursor(Qt.ArrowCursor)
-            # QMessageBox.information(None, self.tr("ERROR:"),
-            #                         self.tr("Error executing process {}".format(process_identifier)))
             self.appendLogMessage(self.tr("Error executing process {}".format(process_identifier)))
             self.appendLogMessage(response.data)
             self.iface.messageBar().pushMessage(
-                self.tr("Error in {}").format(process_identifier), response.data, level=Qgis.Critical
+                self.tr("Error in {}:").format(process_identifier),
+                response.data, level=Qgis.Critical
             )
 
     def appendFileContentIntoLog(self, item):
