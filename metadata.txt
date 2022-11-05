@@ -3,14 +3,14 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=WPS
+name=OWSLib-based WPS Client
 qgisMinimumVersion=3.0
-description=This plugin connect to WPS via OWSLib.
-version=0.1
-author=Jan Ruzicka
-email=jan.ruzicka@opengeolabs.cz
+description=OWSLib-based client for OGC Web Processing Services.
+version=1.0
+author=OpenGeoLabs s.r.o.
+email=info@opengeolabs.cz
 
-about=This plugin connect to WPS via OWSLib
+about=This plugin connect to OGC Web Processing Services via OWSLib library.
 
 tracker=https://github.com/OpenGeoLabs/qgis-wps-plugin/issues
 repository=https://github.com/OpenGeoLabs/qgis-wps-plugin/
@@ -23,7 +23,7 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python, cz, sk, ows, wps
+tags=python, ows, wps
 
 homepage=https://github.com/OpenGeoLabs/qgis-wps-plugin
 category=Plugins
@@ -40,8 +40,7 @@ deprecated=False
 # plugin_dependencies=
 
 Category of the plugin: Raster, Vector, Database or Web
-# category=
+# category=Web
 
 # If the plugin can run on QGIS Server.
 server=False
-
