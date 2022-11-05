@@ -3,8 +3,8 @@ from zipfile import ZipFile
 
 from qgis.core import QgsRasterLayer, QgsProject
 
-class wps_postprocessing:
-    def postprocess(self, inputs, response):
+class WPSPostprocessing:
+    def run(self, inputs, response):
         process_identifier = os.path.splitext(os.path.basename(__file__))[0]
         try:
             target_dir = os.path.splitext(response.output['output'].filepath)[0]

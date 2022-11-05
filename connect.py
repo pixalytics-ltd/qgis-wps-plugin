@@ -124,7 +124,7 @@ class ExecuteProcess(QThread):
                     data_output = execution.getOutput(
                             filePath, output.identifier
                     )
-                    self.__download_data(output, data_output)
+                    self.__downloadData(output, data_output)
                 responseToReturn.status = 200
             except Exception as e:
                 responseToReturn.status = 500
@@ -132,7 +132,7 @@ class ExecuteProcess(QThread):
             responseToReturn.status = 500
         self.statusChanged.emit(responseToReturn)
 
-    def __download_data(self, output, data_output=None):
+    def __downloadData(self, output, data_output=None):
         """
         Read download progress from the execution.getOutput method. Result is
         number from 0 to 1 - so basically % of downloaded file

@@ -67,7 +67,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         tree = self.treeWidgetServices
         tree.itemSelectionChanged.connect(self.handleSelected)
         tree.itemDoubleClicked.connect(self.handleDoubleClicked)
-        self.pushButtonLoad.clicked.connect(self.execute_process)
+        self.pushButtonLoad.clicked.connect(self.executeProcess)
         self.root = QTreeWidgetItem(tree)
         self.root.setText(0, 'WPS Services')
         self.loadServices(self.root)
@@ -105,21 +105,21 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 #         menu.addSeparator()
         if item.parent() is None:
             action_new_connection = menu.addAction(self.tr("New Service"))
-            action_new_connection.triggered.connect(self.new_service)
+            action_new_connection.triggered.connect(self.newService)
         else:
             if item.parent().parent() is None:
                 action_delete_connection = menu.addAction(self.tr("Remove Service"))
-                action_delete_connection.triggered.connect(self.remove_service)
+                action_delete_connection.triggered.connect(self.removeService)
             else:
                 action_run_process = menu.addAction(self.tr("Execute"))
-                action_run_process.triggered.connect(self.execute_process)
+                action_run_process.triggered.connect(self.executeProcess)
 
         menu.exec_(self.treeWidgetServices.mapToGlobal(point))
 
     def saveServices(self):
         self.settings.setValue("services", self.services)
 
-    def new_service(self):
+    def newService(self):
         dlg = QInputDialog(self)
         dlg.setWindowTitle(self.tr('New Service'))
         dlg.setInputMode(QInputDialog.TextInput)
@@ -136,7 +136,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.appendServiceToTree(self.root, text)
                 self.saveServices()
 
-    def remove_service(self):
+    def removeService(self):
         reply = QMessageBox.question(
                         self,
                         self.tr("Remove service"),
@@ -146,24 +146,24 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     )
 
         if reply == QMessageBox.Yes:
-            service = self.get_selected_item()
+            service = self.getSelectedItem()
             service_data = service.data(0, Qt.UserRole)
             parent = service.parent()
             parent.removeChild(service)
             self.services.remove(service_data)
             self.saveServices()
 
-    def execute_process(self):
-        process = self.get_selected_item()
+    def executeProcess(self):
+        process = self.getSelectedItem()
         process_data = process.data(0, Qt.UserRole)
         items = process_data.split('|')
         if self.first_start == True:
            self.first_start = False
            self.dlg = WpsDialog(self.iface)
 
-        self.dlg.set_service_url(items[0])
-        self.dlg.set_process_identifier(items[2])
-        self.dlg.load_process()
+        self.dlg.setServiceUrl(items[0])
+        self.dlg.setProcessIdentifier(items[2])
+        self.dlg.loadProcess()
         # show the dialog
         self.dlg.show()
 
@@ -171,7 +171,7 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if item.data(0, Qt.UserRole) is not None:
             id = item.data(0, Qt.UserRole)
             if '|' in id:
-                self.execute_process()
+                self.executeProcess()
 
     def handleSelected(self):
         self.pushButtonLoad.setEnabled(False)
@@ -179,34 +179,28 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if item.data(0, Qt.UserRole) is not None:
                 id = item.data(0, Qt.UserRole)
                 if '|' not in id:
-#                     print('This is service')
-#                     print(id)
-                    self.load_processes(id)
+                    # service
+                    self.loadProcesses(id)
                 else:
-#                     print('This is process')
-#                     print(id)
+                    # process
                     self.pushButtonLoad.setEnabled(True)
-                    self.process_selected(id)
+                    self.processSelected(id)
 
-    def get_selected_item(self):
+    def getSelectedItem(self):
         for item in self.treeWidgetServices.selectedItems():
             return item
 
-    def load_processes(self, url):
-            self.setCursor(Qt.WaitCursor)
-#             self.textEditLog.append(self.tr("Loading processes ..."))
-            self.loadProcesses = GetProcesses()
-#             print(url)
-            self.loadProcesses.setUrl(url)
-            self.loadProcesses.statusChanged.connect(self.on_load_processes_response)
-            self.loadProcesses.start()
+    def loadProcesses(self, url):
+        self.setCursor(Qt.WaitCursor)
+        self.__load_processes = GetProcesses()
+        self.__load_processes.setUrl(url)
+        self.__load_processes.statusChanged.connect(self.onLoadProcessesResponse)
+        self.__load_processes.start()
 
-    def on_load_processes_response(self, response):
-#         print(response.status)
-#         print(response.data)
+    def onLoadProcessesResponse(self, response):
         if response.status == 200:
             self.processes = response.data
-            service = self.get_selected_item()
+            service = self.getSelectedItem()
             for i in reversed(range(service.childCount())):
                 service.removeChild(service.child(i))
             service_url = service.data(0, Qt.UserRole)
@@ -221,12 +215,12 @@ class WPSWidgetDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             QMessageBox.information(None, self.tr("ERROR:"), self.tr("Error loading processes"))
         self.setCursor(Qt.ArrowCursor)
 
-    def show_process_description(self, index):
+    def showProcessesDescription(self, index):
         self.textEditProcessDescription.setText("[" + self.processes[index].identifier + "]: " + self.processes[index].abstract)
 
-    def process_selected(self, id):
+    def processSelected(self, id):
         current_index = int(id.split('|')[1])
-        self.show_process_description(current_index)
+        self.showProcessesDescription(current_index)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()

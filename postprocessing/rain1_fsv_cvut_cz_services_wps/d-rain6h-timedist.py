@@ -6,8 +6,8 @@ from qgis.gui import QgsMapLayerComboBox, QgsFieldComboBox
 
 import processing
 
-class wps_postprocessing:
-    def postprocess(self, inputs, response):
+class WPSPostprocessing:
+    def run(self, inputs, response):
         process_identifier = os.path.splitext(os.path.basename(__file__))[0]
         try:
             for identifier, output in response.output.items():

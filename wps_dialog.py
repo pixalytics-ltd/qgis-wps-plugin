@@ -55,7 +55,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.verticalLayoutInputs = QVBoxLayout(self.tabInputs)
         self.verticalLayoutOutputs = QVBoxLayout(self.tabOutputs)
-        self.pushButtonExecute.clicked.connect(self.execute_process)
+        self.pushButtonExecute.clicked.connect(self.executeProcess)
         self.handleOutputComboBox = None
         self.input_items = {}
         self.input_items_all = []
@@ -63,29 +63,29 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.processes = []
         self.only_selected = {}
 
-    def show_process_description(self, index):
+    def showProcessDescription(self, index):
         self.textEditProcessDescription.setText(
             "[" + self.processes[index].identifier + "]: " +
             self.processes[index].abstract
         )
 
-    def process_selected(self):
+    def processSelected(self):
         current_index = self.comboBoxProcesses.currentIndex()
         self.show_process_description(current_index)
-        self.load_process()
+        self.loadProcess()
 
-    def get_all_layers_input(self):
+    def getAllLayersInput(self):
         return QgsMapLayerComboBox(self.tabInputs)
 
-    def get_layer_fields(self):
+    def getLayerFields(self):
         return QgsFieldComboBox(self.tabInputs)
 
-    def set_map_layer_cmb_box_connect(self):
+    def setMapLayerCmbBoxConnect(self):
         for param, widget in self.input_items.items():
             if isinstance(widget, QgsMapLayerComboBox):
-                widget.currentIndexChanged.connect(self.set_layer_to_qgs_field_combo_box)
+                widget.currentIndexChanged.connect(self.setLayerToQgsFieldComboBox)
 
-    def set_layer_to_qgs_field_combo_box(self):
+    def setLayerToQgsFieldComboBox(self):
         # TODO not generic - only last items will be connected
         layer = None
         field_cmb_box = None
@@ -95,7 +95,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             if isinstance(widget, QgsMapLayerComboBox):
                 layer = widget.currentLayer()
             if layer is not None:
-                layer.selectionChanged.connect(self.on_layer_selection)
+                layer.selectionChanged.connect(self.onLayerSelection)
         if layer is not None and field_cmb_box is not None:
             field_cmb_box.setLayer(layer)
 
@@ -105,7 +105,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 return True
         return False
 
-    def on_layer_selection(self, selected_features):
+    def onLayerSelection(self, selected_features):
         for param, widget in self.input_items.items():
             if isinstance(widget, QgsMapLayerComboBox):
                 layer = widget.currentLayer()
@@ -114,7 +114,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     selection_widget.setChecked(len(selected_features) > 0)
                     selection_widget.setEnabled(len(selected_features) > 0)
 
-    def get_only_selected_input(self, identifier):
+    def getOnlySelectedInput(self, identifier):
         input_item = QCheckBox(self.tabInputs)
         input_item.setText(self.tr("Only selected features"))
         for param, widget in self.input_items.items():
@@ -131,7 +131,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(input_item)
         return hbox_layout
 
-    def _get_allowed_values_input(self, values, min_occurs, max_occurs, default_value):
+    def _getAllowedValuesInput(self, values, min_occurs, max_occurs, default_value):
         """Create select dialogue maybe with checkboxes for multiple values
         """
         input_item = QgsCheckableComboBox()
@@ -155,27 +155,27 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         input_item.checkedItemsChanged.connect(items_checked)
         return input_item
 
-    def get_input(self, identifier, title, data_type, default_value,
+    def getInput(self, identifier, title, data_type, default_value,
             min_occurs, max_occurs, allowed_values):
         # TODO check types
         input_item = None
         if data_type == 'ComplexData':
-            input_item = self.get_all_layers_input()
+            input_item = self.getAllLayersInput()
         else:
             input_item = QLineEdit(self.tabInputs)
             if "column" in identifier:
-                input_item = self.get_layer_fields()
+                input_item = self.getLayerFields()
             elif self.isDateInput(identifier, title):
                 input_item = QgsDateTimeEdit(self.tabInputs)
             elif allowed_values:
-                input_item = self._get_allowed_values_input(allowed_values,
-                                                            min_occurs, max_occurs, default_value)
+                input_item = self._getAllowedValuesInput(allowed_values,
+                                                         min_occurs, max_occurs, default_value)
             else:
                 if str(default_value) == 'None':
                     input_item.setText('')
                 else:
                     input_item.setText(str(default_value))
-        hbox_layout, label, label_id = self.get_input_item_container(
+        hbox_layout, label, label_id = self.getInputItemContainer(
             identifier, input_item, min_occurs, title
         )
         # TODO check if there is not a better way
@@ -185,7 +185,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.input_items_all.append(label_id)
         return hbox_layout
 
-    def get_input_item_container(self, identifier, input_item, min_occurs, title):
+    def getInputItemContainer(self, identifier, input_item, min_occurs, title):
         hbox_layout = QHBoxLayout(self.tabInputs)
         vbox_layout = QVBoxLayout(self.tabInputs)
         label_id = QLabel(self.tabInputs)
@@ -204,47 +204,47 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(input_item)
         return hbox_layout, label, label_id
 
-    def set_service_url(self, url):
+    def setServiceUrl(self, url):
         self.service_url = url
 
-    def set_process_identifier(self, id):
+    def setProcessIdentifier(self, id):
         self.process_identifier = id
 
-    def load_process(self):
+    def loadProcess(self):
         if self.process_identifier is not None and self.service_url is not None:
             self.setCursor(Qt.WaitCursor)
-            self.item_remove(self.input_items_all)
+            self.itemRemove(self.input_items_all)
             self.progressBar.setValue(0)
             self.textEditLog.setText(self.tr("Loading process {}...".format(self.process_identifier)))
-            self.loadProcess = GetProcess()
-            self.loadProcess.setUrl(self.service_url)
-            self.loadProcess.setIdentifier(self.process_identifier)
-            self.loadProcess.statusChanged.connect(self.on_load_process_response)
-            self.loadProcess.start()
+            self.__load_process = GetProcess()
+            self.__load_process.setUrl(self.service_url)
+            self.__load_process.setIdentifier(self.process_identifier)
+            self.__load_process.statusChanged.connect(self.onLoadProcessResponse)
+            self.__load_process.start()
 
-    def item_remove(self, array):
+    def itemRemove(self, array):
         for item_to_remove in array:
             item_to_remove.setParent(None)
 
-    def set_input_items(self, data):
+    def setInputItems(self, data):
         self.input_items = {}
         self.pushButtonExecute.setEnabled(True)
         for x in data.dataInputs:
 
-            input_item = self.get_input(
-                    x.identifier, x.title, x.dataType, x.defaultValue,
-                    x.minOccurs, x.maxOccurs, x.allowedValues
+            input_item = self.getInput(
+                x.identifier, x.title, x.dataType, x.defaultValue,
+                x.minOccurs, x.maxOccurs, x.allowedValues
             )
 
             self.verticalLayoutInputs.addLayout(input_item)
             if x.dataType == 'ComplexData':
-                only_selected_item = self.get_only_selected_input(x.identifier)
+                only_selected_item = self.getOnlySelectedInput(x.identifier)
                 self.verticalLayoutInputs.addLayout(only_selected_item)
         self.tabInputs.setLayout(self.verticalLayoutInputs)
-        self.set_layer_to_qgs_field_combo_box()
-        self.set_map_layer_cmb_box_connect()
+        self.setLayerToQgsFieldComboBox()
+        self.setMapLayerCmbBoxConnect()
 
-    def get_output(self, identifier, title, mime_type):
+    def getOutput(self, identifier, title, mime_type):
         hbox_layout = QHBoxLayout(self.tabOutputs)
         label = QLabel(self.tabOutputs)
         label.setFixedWidth(200)
@@ -259,7 +259,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.output_items_all.append(label_mime_type)
         return hbox_layout
 
-    def get_output_options_postprocessing(self):
+    def getOutputOptionsPostprocessing(self):
         hbox_layout = QHBoxLayout(self.tabOutputs)
         label = QLabel(self.tabOutputs)
         label.setFixedWidth(200)
@@ -267,7 +267,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         hbox_layout.addWidget(label)
         self.handleOutputComboBox = QComboBox()
         self.handleOutputComboBox.addItem(self.tr("Load into map"))
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', self.get_stripped_url(), self.process_identifier + ".py")
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessing', self.getStrippedUrl(), self.process_identifier + ".py")
         if os.path.exists(path):
             self.handleOutputComboBox.addItem(self.tr("Postprocess"))
             self.handleOutputComboBox.setCurrentIndex(1)
@@ -276,20 +276,20 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.output_items_all.append(self.handleOutputComboBox)
         return hbox_layout
 
-    def set_output_items(self, data):
-        self.item_remove(self.output_items_all)
+    def setOutputItems(self, data):
+        self.itemRemove(self.output_items_all)
         for x in data.processOutputs:
-            output_item = self.get_output(x.identifier, x.title, x.mimeType)
+            output_item = self.getOutput(x.identifier, x.title, x.mimeType)
             self.verticalLayoutOutputs.addLayout(output_item)
-            output_item_handle = self.get_output_options_postprocessing()
+            output_item_handle = self.getOutputOptionsPostprocessing()
             self.verticalLayoutOutputs.addLayout(output_item_handle)
         self.tabOutputs.setLayout(self.verticalLayoutOutputs)
 
-    def on_load_process_response(self, response):
+    def onLoadProcessResponse(self, response):
         if response.status == 200:
             if response.data.abstract is not None:
-                self.set_input_items(response.data)
-                self.set_output_items(response.data)
+                self.setInputItems(response.data)
+                self.setOutputItems(response.data)
                 self.appendLogMessage(self.tr("Process {} loaded".format(self.process_identifier)))
             else:
                 self.appendLogMessage(self.tr("Error loading process {}".format(self.process_identifier)))
@@ -299,7 +299,7 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.appendLogMessage(self.tr("Error loading process {}".format(self.process_identifier)))
         self.setCursor(Qt.ArrowCursor)
 
-    def execute_process(self):
+    def executeProcess(self):
         self.setCursor(Qt.WaitCursor)
         # Async call: https://ouranosinc.github.io/pavics-sdi/tutorials/wps_with_python.html
         myinputs = []
@@ -311,14 +311,14 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                     iface.messageBar().pushMessage(
                         self.tr("Error"), self.tr("There is not any layer"), level=Qgis.Critical
                     )
-                    self.reset_on_error()
+                    self.resetOnError()
                     return
                 if layer.type() == QgsMapLayer.VectorLayer:
                     tmp_ext = '.gml'
                     tmp_frmt = 'GML'
                 else:
                     iface.messageBar().pushMessage("Error", "Unsupported map layer type", level=Qgis.Critical)
-                    self.reset_on_error()
+                    self.resetOnError()
                     return
 
                 tmp_file = QgsProcessingUtils.generateTempFilename(
@@ -332,15 +332,18 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                             self.tr("Warning"),
                             self.tr("No features selected"), level=Qgis.Warning
                         )
-                        self.reset_on_error()
+                        self.resetOnError()
                         return
 
-                QgsVectorFileWriter.writeAsVectorFormat(
+                options = QgsVectorFileWriter.SaveVectorOptions()
+                options.driverName = tmp_frmt
+                options.onlySelectedFeatures = only_selected
+                options.layerName = layer.name().replace('-', '_')
+                QgsVectorFileWriter.writeAsVectorFormatV3(
                     layer,
                     tmp_file,
-                    fileEncoding="UTF-8",
-                    driverName=tmp_frmt,
-                    onlySelected=only_selected
+                    QgsProject.instance().transformContext(),
+                    options
                 )
                 with open(tmp_file) as fd:
                     cdi = ComplexDataInput(fd.read())
@@ -357,12 +360,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 if widget.text() != 'None':
                     myinputs.append((param, widget.text()))
         self.appendLogMessage(self.tr("Executing {} process ...".format(self.process_identifier)))
-        self.executeProcess = ExecuteProcess()
-        self.executeProcess.setUrl(self.service_url)
-        self.executeProcess.setIdentifier(self.process_identifier)
-        self.executeProcess.setInputs(myinputs)
-        self.executeProcess.statusChanged.connect(self.on_execute_process_response)
-        self.executeProcess.start()
+        self.__execute_process = ExecuteProcess()
+        self.__execute_process.setUrl(self.service_url)
+        self.__execute_process.setIdentifier(self.process_identifier)
+        self.__execute_process.setInputs(myinputs)
+        self.__execute_process.statusChanged.connect(self.onExecuteProcessResponse)
+        self.__execute_process.start()
 
     # Only for testing purposes
     def postprocess(self, inputs, response):
@@ -385,22 +388,22 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
             parameters = { 'DISCARD_NONMATCHING' : False, 'FIELD' : layerField, 'FIELDS_TO_COPY' : [], 'FIELD_2' : csvField, 'INPUT' : layer.source(), 'INPUT_2' : csv.source(), 'METHOD' : 1, 'OUTPUT' : 'TEMPORARY_OUTPUT', 'PREFIX' : '' }
             result = processing.runAndLoadResults('qgis:joinattributestable', parameters)
 
-    def get_stripped_url(self):
+    def getStrippedUrl(self):
         return self.service_url.split('//')[1].replace('.', '_').replace('/', '_')
 
-    def postprocess_output(self, process_identifier, inputs, response):
+    def postprocessOutput(self, process_identifier, inputs, response):
         current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         current_module_name = os.path.splitext(os.path.basename(current_dir))[0]
-        module = importlib.import_module(".postprocessing." + self.get_stripped_url() + "." + process_identifier, package=current_module_name)
+        module = importlib.import_module(".postprocessing." + self.getStrippedUrl() + "." + process_identifier, package=current_module_name)
         for member in dir(module):
-            if member == 'wps_postprocessing':
+            if member == 'WPSPostprocessing':
                 handler_class = getattr(module, member)
                 current_source = handler_class()
-                return current_source.postprocess(inputs, response)
+                return current_source.run(inputs, response)
                 # only for testig purposes
                 # self.postprocess(inputs, response)
 
-    def process_not_known_output(self, item):
+    def processNotKnownOutput(self, item):
         QMessageBox.information(
             None, self.tr("INFO:"),
             self.tr("Process sucesfully finished. The output can not be loaded into map. "
@@ -408,34 +411,34 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.appendLogMessage(self.tr("Showing content of the output"))
         self.appendFileContentIntoLog(item)
 
-    def get_csv_layer(self, file_path, layer_name):
+    def getCsvLayer(self, file_path, layer_name):
         return QgsVectorLayer(
             'file:///' + file_path + '?delimiter=,',
             layer_name, 'delimitedtext'
         )
 
-    def get_zipped_vector_layer(self, file_path, layer_name):
+    def getZippedVectorLayer(self, file_path, layer_name):
         return QgsVectorLayer(
             '/vsizip/' + file_path,
             layer_name,
             "ogr")
 
-    def get_vector_layer(self, file_path, layer_name):
+    def getVectorLayer(self, file_path, layer_name):
         return QgsVectorLayer(
             file_path,
             layer_name,
             "ogr")
 
-    def get_raster_layer(self, file_path, layer_name):
+    def getRasterLayer(self, file_path, layer_name):
         return QgsRasterLayer(
             file_path,
             layer_name
         )
 
-    def process_output(self, response):
+    def processOutput(self, response):
         process_identifier = self.process_identifier
         if self.handleOutputComboBox is not None and self.handleOutputComboBox.currentIndex() == 1:
-            result = self.postprocess_output(process_identifier, self.input_items, response)
+            result = self.postprocessOutput(process_identifier, self.input_items, response)
             if result is not None:
                 self.appendLogMessage(self.tr("Postprocessing successfully finished"))
             else:
@@ -446,28 +449,28 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 layer = None
                 layer_name = "{} {}".format(process_identifier, identifier)
                 if layer is None or not layer.isValid():
-                    layer = self.get_zipped_vector_layer(item.filepath, layer_name)
+                    layer = self.getZippedVectorLayer(item.filepath, layer_name)
                 if layer is None or not layer.isValid():
-                    layer = self.get_vector_layer(item.filepath, layer_name)
+                    layer = self.getVectorLayer(item.filepath, layer_name)
                 if layer is None or not layer.isValid():
-                    layer = self.get_raster_layer(item.filepath, layer_name)
+                    layer = self.getRasterLayer(item.filepath, layer_name)
                 if (layer is None or not layer.isValid()) and item.mimetype == 'application/csv':
-                    layer = self.get_csv_layer(item.filepath, layer_name)
+                    layer = self.getCsvLayer(item.filepath, layer_name)
                 if layer is not None and layer.isValid():
                     QgsProject.instance().addMapLayer(layer)
                     self.appendLogMessage(self.tr("Output data loaded into the map"))
                 else:
-                    self.process_not_known_output(item)
+                    self.processNotKnownOutput(item)
 
-    def reset_on_error(self):
+    def resetOnError(self):
         self.setCursor(Qt.ArrowCursor)
         self.progressBar.setValue(0)
 
-    def on_execute_process_response(self, response):
+    def onExecuteProcessResponse(self, response):
         process_identifier = self.process_identifier
         if response.status == 200:
             self.appendLogMessage(self.tr("Process {} successfully finished".format(process_identifier)))
-            self.process_output(response)
+            self.processOutput(response)
             self.setCursor(Qt.ArrowCursor)
         if response.status == 201:
             self.appendLogMessage(self.tr("Process '{}': {}% {}".format(
