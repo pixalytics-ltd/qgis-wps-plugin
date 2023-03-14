@@ -400,13 +400,13 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 handler_class = getattr(module, member)
                 current_source = handler_class()
                 return current_source.run(inputs, response)
-                # only for testig purposes
+                # only for testing purposes
                 # self.postprocess(inputs, response)
 
     def processNotKnownOutput(self, item):
         QMessageBox.information(
             None, self.tr("INFO:"),
-            self.tr("Process sucesfully finished. The output can not be loaded into map. "
+            self.tr("Process successfully finished. The output cannot be loaded into map. "
                     "Printing output into log."))
         self.appendLogMessage(self.tr("Showing content of the output"))
         self.appendFileContentIntoLog(item)
@@ -415,6 +415,12 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
         return QgsVectorLayer(
             'file:///' + file_path + '?delimiter=,',
             layer_name, 'delimitedtext'
+        )
+
+    def getJsonLayer(self, file_path, layer_name):
+        return QgsVectorLayer(
+            file_path,
+            layer_name, "ogr"
         )
 
     def getZippedVectorLayer(self, file_path, layer_name):
@@ -449,7 +455,10 @@ class WpsDialog(QtWidgets.QDialog, FORM_CLASS):
                 layer = None
                 layer_name = "{} {}".format(process_identifier, identifier)
                 if layer is None or not layer.isValid():
-                    layer = self.getZippedVectorLayer(item.filepath, layer_name)
+                    if item.mimetype in ('application/json'):
+                        layer = self.getJsonLayer(item.filepath, layer_name)
+                    else:
+                        layer = self.getZippedVectorLayer(item.filepath, layer_name)
                 if layer is None or not layer.isValid():
                     layer = self.getVectorLayer(item.filepath, layer_name)
                 if layer is None or not layer.isValid():
