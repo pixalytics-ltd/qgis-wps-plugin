@@ -132,3 +132,6 @@ dmypy.json
 
 # custom
 help/build
+
+# Pycharm
+/.idea
